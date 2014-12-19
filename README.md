@@ -14,4 +14,4 @@ Note that if you want to be able to receive events on any of the SVG elements yo
 
 If your viewer changes size, you'll need to resize the SVG overlay by calling `svgOverlay('resize')` on your Viewer.
 
-See demo.html for an example of it in use.
+See demo.html for an example of it in use. You can see it in action at http://openseadragon.github.io/svg-overlay/demo.html.
