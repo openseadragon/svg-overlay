@@ -48,7 +48,7 @@
             info.svg.style.top = 0;
             info.svg.style.width = '100%';
             info.svg.style.height = '100%';
-            this.container.insertBefore(info.svg, this.canvas.nextSibling);
+            this.canvas.appendChild(info.svg);
 
             info.node = document.createElementNS(svgNS, 'g');
             info.svg.appendChild(info.node);
