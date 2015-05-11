@@ -1,0 +1,11 @@
+OPENSEADRAGON SVG OVERLAY CHANGELOG
+===================================
+
+0.0.2:
+
+* BREAKING CHANGE: Refactored API
+* SVG elements no longer obscure scroll zoom (#3)
+
+0.0.1:
+
+* First version

@@ -1,3 +1,5 @@
+// OpenSeadragon SVG Overlay plugin 0.0.2
+
 (function() {
 
     if (!window.OpenSeadragon) {
@@ -7,66 +9,89 @@
 
     var svgNS = 'http://www.w3.org/2000/svg';
 
-    var update = function(viewer) {
-        var info = viewer._svgOverlayInfo;
-
-        if (info.containerWidth !== viewer.container.clientWidth) {
-            info.containerWidth = viewer.container.clientWidth;
-            info.svg.setAttribute('width', info.containerWidth);
+    // ----------
+    OpenSeadragon.Viewer.prototype.svgOverlay = function() {
+        if (this._svgOverlayInfo) {
+            return this._svgOverlayInfo;
         }
 
-        if (info.containerHeight !== viewer.container.clientHeight) {
-            info.containerHeight = viewer.container.clientHeight;
-            info.svg.setAttribute('height', info.containerHeight);
-        }
-
-        var p = viewer.viewport.pixelFromPoint(new OpenSeadragon.Point(0, 0), true);
-        var zoom = viewer.viewport.getZoom(true);
-        var scale = viewer.container.clientWidth * zoom;
-        info.node.setAttribute('transform',
-            'translate(' + p.x + ',' + p.y + ') scale(' + scale + ')');
+        this._svgOverlayInfo = new Overlay(this);
+        return this._svgOverlayInfo;
     };
 
-    OpenSeadragon.Viewer.prototype.svgOverlay = function(command) {
+    // ----------
+    var Overlay = function(viewer) {
         var self = this;
 
-        if (command === undefined) {
-            if (this._svgOverlayInfo) {
-                console.error('[openseadragon-svg-overlay] already initialized on this viewer');
-                return;
+        this._viewer = viewer;
+        this._containerWidth = 0;
+        this._containerHeight = 0;
+
+        this._svg = document.createElementNS(svgNS, 'svg');
+        this._svg.style.position = 'absolute';
+        this._svg.style.left = 0;
+        this._svg.style.top = 0;
+        this._svg.style.width = '100%';
+        this._svg.style.height = '100%';
+        this._viewer.canvas.appendChild(this._svg);
+
+        this._node = document.createElementNS(svgNS, 'g');
+        this._svg.appendChild(this._node);
+
+        this._viewer.addHandler('animation', function() {
+            self.resize();
+        });
+
+        this._viewer.addHandler('open', function() {
+            self.resize();
+        });
+
+        this.resize();
+    };
+
+    // ----------
+    Overlay.prototype = {
+        // ----------
+        node: function() {
+            return this._node;
+        },
+
+        // ----------
+        resize: function() {
+            if (this._containerWidth !== this._viewer.container.clientWidth) {
+                this._containerWidth = this._viewer.container.clientWidth;
+                this._svg.setAttribute('width', this._containerWidth);
             }
 
-            var info = this._svgOverlayInfo = {
-                containerWidth: 0,
-                containerHeight: 0
-            };
+            if (this._containerHeight !== this._viewer.container.clientHeight) {
+                this._containerHeight = this._viewer.container.clientHeight;
+                this._svg.setAttribute('height', this._containerHeight);
+            }
 
-            info.svg = document.createElementNS(svgNS, 'svg');
-            info.svg.setAttribute('pointer-events', 'none');
-            info.svg.style.position = 'absolute';
-            info.svg.style.left = 0;
-            info.svg.style.top = 0;
-            info.svg.style.width = '100%';
-            info.svg.style.height = '100%';
-            this.canvas.appendChild(info.svg);
+            var p = this._viewer.viewport.pixelFromPoint(new OpenSeadragon.Point(0, 0), true);
+            var zoom = this._viewer.viewport.getZoom(true);
+            var scale = this._viewer.container.clientWidth * zoom;
+            this._node.setAttribute('transform',
+                'translate(' + p.x + ',' + p.y + ') scale(' + scale + ')');
+        },
 
-            info.node = document.createElementNS(svgNS, 'g');
-            info.svg.appendChild(info.node);
+        // ----------
+        onClick: function(node, handler) {
+            // TODO: MS pointer events
+            // TODO: Fast click for mobile browsers
 
-            this.addHandler('animation', function() {
-                update(self);
+            OpenSeadragon.addEvent(node, 'mousedown', function(event) {
+                OpenSeadragon.stopEvent(event);
             });
 
-            this.addHandler('open', function() {
-                update(self);
+            OpenSeadragon.addEvent(node, 'touchdown', function(event) {
+                OpenSeadragon.stopEvent(event);
             });
 
-            update(this);
-            return info.node;
-        } else if (command === 'resize') {
-            update(this);
-        } else {
-            console.error('[openseadragon-svg-overlay] unknown command: ' + command);
+            OpenSeadragon.addEvent(node, 'click', function(event) {
+                OpenSeadragon.stopEvent(event);
+                handler(event);
+            });
         }
     };
 
