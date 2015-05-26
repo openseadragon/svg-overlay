@@ -2,7 +2,7 @@
 
 An OpenSeadragon plugin that adds SVG overlay capability.
 
-Compatible only with the new "Collections" branch of OpenSeadragon.
+Compatible with OpenSeadragon 2.0.0 or greater.
 
 ## Documentation
 
@@ -15,3 +15,8 @@ To add SVG overlay capability to your OpenSeadragon Viewer, call `svgOverlay()` 
 * `onClick(node, handler)`: If you want to accept click events on a sub-node, use this method. It takes care of making sure the click isn't also handled by the Viewer. The handler you provide is called when the click occurs and given a single argument, the original event.
 
 See demo.html for an example of it in use. You can see it in action at http://openseadragon.github.io/svg-overlay/demo.html.
+
+This plugin is also used on the desktop versions of: 
+
+* http://iangilman.com/openseadragon/rdio/
+* http://iangilman.com/openseadragon/flickr/
