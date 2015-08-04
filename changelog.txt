@@ -1,6 +1,10 @@
 OPENSEADRAGON SVG OVERLAY CHANGELOG
 ===================================
 
+0.0.3:
+
+* Fixed onClick on mobile (#5)
+
 0.0.2:
 
 * BREAKING CHANGE: Refactored API

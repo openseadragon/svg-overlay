@@ -1,4 +1,4 @@
-// OpenSeadragon SVG Overlay plugin 0.0.2
+// OpenSeadragon SVG Overlay plugin 0.0.3
 
 (function() {
 
@@ -77,21 +77,12 @@
 
         // ----------
         onClick: function(node, handler) {
-            // TODO: MS pointer events
             // TODO: Fast click for mobile browsers
 
-            OpenSeadragon.addEvent(node, 'mousedown', function(event) {
-                OpenSeadragon.stopEvent(event);
-            });
-
-            OpenSeadragon.addEvent(node, 'touchdown', function(event) {
-                OpenSeadragon.stopEvent(event);
-            });
-
-            OpenSeadragon.addEvent(node, 'click', function(event) {
-                OpenSeadragon.stopEvent(event);
-                handler(event);
-            });
+            new OpenSeadragon.MouseTracker({
+                element: node,
+                clickHandler: handler
+            }).setTracking(true);
         }
     };
 
