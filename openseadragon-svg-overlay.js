@@ -1,4 +1,4 @@
-// OpenSeadragon SVG Overlay plugin 0.0.3
+// OpenSeadragon SVG Overlay plugin 0.0.4
 
 (function() {
 
@@ -70,7 +70,8 @@
 
             var p = this._viewer.viewport.pixelFromPoint(new OpenSeadragon.Point(0, 0), true);
             var zoom = this._viewer.viewport.getZoom(true);
-            var scale = this._viewer.container.clientWidth * zoom;
+            // TODO: Expose an accessor for _containerInnerSize in the OSD API so we don't have to use the private variable.
+            var scale = this._viewer.viewport._containerInnerSize.x * zoom;
             this._node.setAttribute('transform',
                 'translate(' + p.x + ',' + p.y + ') scale(' + scale + ')');
         },
