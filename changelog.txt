@@ -1,6 +1,10 @@
 OPENSEADRAGON SVG OVERLAY CHANGELOG
 ===================================
 
+0.0.4:
+
+* Fixed: overlay off when OSD viewport margins set (#9)
+
 0.0.3:
 
 * Fixed onClick on mobile (#5)
