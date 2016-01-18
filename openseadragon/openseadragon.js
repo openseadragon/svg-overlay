@@ -1,6 +1,6 @@
-//! OpenSeadragon 1.1.1
-//! Built on 2014-12-18
-//! Git commit: v1.1.1-259-0ab7b95
+//! OpenSeadragon 2.1.0
+//! Built on 2016-01-18
+//! Git commit: v2.1.0-0-404a248
 //! http://openseadragon.github.io
 //! License: http://openseadragon.github.io/license/
 
@@ -89,7 +89,7 @@
 
 
 /**
- * @version  OpenSeadragon 1.1.1
+ * @version  OpenSeadragon 2.1.0
  *
  * @file
  * <h2><strong>OpenSeadragon - Javascript Deep Zooming</strong></h2>
@@ -136,6 +136,10 @@
   *     Tile source(s) to open initially. This is a complex parameter; see
   *     {@link OpenSeadragon.Viewer#open} for details.
   *
+  * @property {Number} [tabIndex=0]
+  *     Tabbing order index to assign to the viewer element. Positive values are selected in increasing order. When tabIndex is 0
+  *     source order is used. A negative value omits the viewer from the tabbing order.
+  *
   * @property {Array} overlays Array of objects defining permanent overlays of
   *     the viewer. The overlays added via this option and later removed with
   *     {@link OpenSeadragon.Viewer#removeOverlay} will be added back when a new
@@ -177,9 +181,6 @@
   *     these paths, prefer setting the option.prefixUrl rather than overriding
   *     every image path directly through this setting.
   *
-  * @property {Object} [tileHost=null]
-  *     TODO: Implement this. Currently not used.
-  *
   * @property {Boolean} [debugMode=false]
   *     TODO: provide an in-screen panel providing event detail feedback.
   *
@@ -209,7 +210,12 @@
   *     If 0, adjusts to fit viewer.
   *
   * @property {Number} [opacity=1]
-  *     Opacity of the drawer (1=opaque, 0=transparent)
+  *     Default opacity of the tiled images (1=opaque, 0=transparent)
+  *
+  * @property {String|CanvasGradient|CanvasPattern|Function} [placeholderFillStyle=null]
+  *     Draws a colored rectangle behind the tile if it is not loaded yet.
+  *     You can pass a CSS color value like "#FF8800".
+  *     When passing a function the tiledImage and canvas context are available as argument which is useful when you draw a gradient or pattern.
   *
   * @property {Number} [degrees=0]
   *     Initial rotation.
@@ -241,7 +247,7 @@
   * @property {Number} [minZoomImageRatio=0.9]
   *     The minimum percentage ( expressed as a number between 0 and 1 ) of
   *     the viewport height or width at which the zoom out will be constrained.
-  *     Setting it to 0, for example will allow you to zoom out infinitly.
+  *     Setting it to 0, for example will allow you to zoom out infinity.
   *
   * @property {Number} [maxZoomPixelRatio=1.1]
   *     The maximum ratio to allow a zoom-in to affect the highest level pixel
@@ -251,6 +257,14 @@
   *
   * @property {Boolean} [autoResize=true]
   *     Set to false to prevent polling for viewer size changes. Useful for providing custom resize behavior.
+  *
+  * @property {Boolean} [preserveImageSizeOnResize=false]
+  *     Set to true to have the image size preserved when the viewer is resized. This requires autoResize=true (default).
+  *
+  * @property {Number} [minScrollDeltaTime=50]
+  *     Number of milliseconds between canvas-scroll events. This value helps normalize the rate of canvas-scroll
+  *     events between different devices, causing the faster devices to slow down enough to make the zoom control
+  *     more manageable.
   *
   * @property {Number} [pixelsPerWheelLine=40]
   *     For pixel-resolution scrolling devices, the number of pixels equal to one scroll line.
@@ -267,7 +281,7 @@
   *     Possible subproperties (Numbers, in screen coordinates): left, top, right, bottom.
   *
   * @property {Number} [imageLoaderLimit=0]
-  *     The maximum number of image requests to make concurrently.  By default
+  *     The maximum number of image requests to make concurrently. By default
   *     it is set to 0 allowing the browser to make the maximum number of
   *     image requests in parallel as allowed by the browsers policy.
   *
@@ -353,7 +367,7 @@
   * @property {Boolean} [showNavigator=false]
   *     Set to true to make the navigator minimap appear.
   *
-  * @property {Boolean} [navigatorId=navigator-GENERATED DATE]
+  * @property {String} [navigatorId=navigator-GENERATED DATE]
   *     The ID of a div to hold the navigator minimap.
   *     If an ID is specified, the navigatorPosition, navigatorSizeRatio, navigatorMaintainSizeRatio, and navigatorTop|Left|Height|Width options will be ignored.
   *     If an ID is not specified, a div element will be generated and placed on top of the main image.
@@ -519,9 +533,19 @@
   *     If sequenceMode is true, display this page initially.
   *
   * @property {Boolean} [preserveViewport=false]
-  *     If sequenceMode is true, then normally navigating to through each image resets the
+  *     If sequenceMode is true, then normally navigating through each image resets the
   *     viewport to 'home' position.  If preserveViewport is set to true, then the viewport
   *     position is preserved when navigating between images in the sequence.
+  *
+  * @property {Boolean} [preserveOverlays=false]
+  *     If sequenceMode is true, then normally navigating through each image
+  *     resets the overlays.
+  *     If preserveOverlays is set to true, then the overlays added with {@link OpenSeadragon.Viewer#addOverlay}
+  *     are preserved when navigating between images in the sequence.
+  *     Note: setting preserveOverlays overrides any overlays specified in the global
+  *     "overlays" option for the Viewer. It's also not compatible with specifying
+  *     per-tileSource overlays via the options, as those overlays will persist
+  *     even after the tileSource is closed.
   *
   * @property {Boolean} [showReferenceStrip=false]
   *     If sequenceMode is true, then display a scrolling strip of image thumbnails for
@@ -546,6 +570,10 @@
   *     If collectionMode is true, specifies how many rows the grid should have. Use 1 to make a line.
   *     If collectionLayout is 'vertical', specifies how many columns instead.
   *
+  * @property {Number} [collectionColumns=0]
+  *     If collectionMode is true, specifies how many columns the grid should have. Use 1 to make a line.
+  *     If collectionLayout is 'vertical', specifies how many rows instead. Ignored if collectionRows is not set to a falsy value.
+  *
   * @property {String} [collectionLayout='horizontal']
   *     If collectionMode is true, specifies whether to arrange vertically or horizontally.
   *
@@ -557,8 +585,12 @@
   *     If collectionMode is true, specifies the margin, in viewport coordinates, between each TiledImage.
   *
   * @property {String|Boolean} [crossOriginPolicy=false]
-  *      Valid values are 'Anonymous', 'use-credentials', and false. If false, canvas requests will
-  *      not use CORS, and the canvas will be tainted.
+  *     Valid values are 'Anonymous', 'use-credentials', and false. If false, canvas requests will
+  *     not use CORS, and the canvas will be tainted.
+  *
+  * @property {Boolean} [ajaxWithCredentials=false]
+  *     Whether to set the withCredentials XHR flag for AJAX requests (when loading tile sources).
+  *     Note that this can be overridden at the {@link OpenSeadragon.TileSource} level.
   *
   */
 
@@ -666,6 +698,12 @@ window.OpenSeadragon = window.OpenSeadragon || function( options ){
 
 };
 
+if (typeof define === 'function' && define.amd) {
+   define(function () {
+       return (window.OpenSeadragon);
+   });
+}
+
 
 (function( $ ){
 
@@ -681,10 +719,10 @@ window.OpenSeadragon = window.OpenSeadragon || function( options ){
      * @since 1.0.0
      */
     $.version = {
-        versionStr: '1.1.1',
-        major: parseInt('1', 10),
+        versionStr: '2.1.0',
+        major: parseInt('2', 10),
         minor: parseInt('1', 10),
-        revision: parseInt('1', 10)
+        revision: parseInt('0', 10)
     };
 
 
@@ -778,10 +816,12 @@ window.OpenSeadragon = window.OpenSeadragon || function( options ){
         // Own properties are enumerated firstly, so to speed up,
         // if last one is own, then all properties are own.
 
-        var key;
-        for ( key in obj ) {}
+        var lastKey;
+        for (var key in obj ) {
+            lastKey = key;
+        }
 
-        return key === undefined || hasOwn.call( obj, key );
+        return lastKey === undefined || hasOwn.call( obj, lastKey );
     };
 
 
@@ -810,6 +850,42 @@ window.OpenSeadragon = window.OpenSeadragon || function( options ){
                     canvasElement.getContext( '2d' ) );
     }());
 
+    /**
+     * Test whether the submitted canvas is tainted or not.
+     * @argument {Canvas} canvas The canvas to test.
+     * @returns {Boolean} True if the canvas is tainted.
+     */
+    $.isCanvasTainted = function(canvas) {
+        var isTainted = false;
+        try {
+            // We test if the canvas is tainted by retrieving data from it.
+            // An exception will be raised if the canvas is tainted.
+            var data = canvas.getContext('2d').getImageData(0, 0, 1, 1);
+        } catch (e) {
+            isTainted = true;
+        }
+        return isTainted;
+    };
+
+    /**
+     * A ratio comparing the device screen's pixel density to the canvas's backing store pixel density. Defaults to 1 if canvas isn't supported by the browser.
+     * @member {Number} pixelDensityRatio
+     * @memberof OpenSeadragon
+     */
+    $.pixelDensityRatio = (function () {
+        if ( $.supportsCanvas ) {
+            var context = document.createElement('canvas').getContext('2d');
+            var devicePixelRatio = window.devicePixelRatio || 1;
+            var backingStoreRatio = context.webkitBackingStorePixelRatio ||
+                                    context.mozBackingStorePixelRatio ||
+                                    context.msBackingStorePixelRatio ||
+                                    context.oBackingStorePixelRatio ||
+                                    context.backingStorePixelRatio || 1;
+            return devicePixelRatio / backingStoreRatio;
+        } else {
+            return 1;
+        }
+    }());
 
 }( OpenSeadragon ));
 
@@ -917,6 +993,7 @@ window.OpenSeadragon = window.OpenSeadragon || function( options ){
             tileHost:               null,
             initialPage:            0,
             crossOriginPolicy:      false,
+            ajaxWithCredentials:    false,
 
             //PAN AND ZOOM SETTINGS AND CONSTRAINTS
             panHorizontal:          true,
@@ -953,11 +1030,14 @@ window.OpenSeadragon = window.OpenSeadragon || function( options ){
             maxZoomPixelRatio:      1.1, //-> higher allows 'over zoom' into pixels
             pixelsPerWheelLine:     40,
             autoResize:             true,
+            preserveImageSizeOnResize: false, // requires autoResize=true
+            minScrollDeltaTime:     50,
 
             //DEFAULT CONTROL SETTINGS
             showSequenceControl:     true,  //SEQUENCE
             sequenceControlAnchor:   null,  //SEQUENCE
             preserveViewport:        false, //SEQUENCE
+            preserveOverlays:        false, //SEQUENCE
             navPrevNextWrap:         false, //SEQUENCE
             showNavigationControl:   true,  //ZOOM/HOME/FULL/ROTATION
             navigationControlAnchor: null,  //ZOOM/HOME/FULL/ROTATION
@@ -983,10 +1063,11 @@ window.OpenSeadragon = window.OpenSeadragon || function( options ){
             navigatorRotate:            true,
 
             // INITIAL ROTATION
-            degrees:                0,
+            degrees:                    0,
 
             // APPEARANCE
-            opacity:                1,
+            opacity:                    1,
+            placeholderFillStyle:       null,
 
             //REFERENCE STRIP SETTINGS
             showReferenceStrip:          false,
@@ -999,6 +1080,7 @@ window.OpenSeadragon = window.OpenSeadragon || function( options ){
 
             //COLLECTION VISUALIZATION SETTINGS
             collectionRows:         3, //or columns depending on layout
+            collectionColumns:      0, //columns in horizontal layout, rows in vertical layout
             collectionLayout:       'horizontal', //vertical
             collectionMode:         false,
             collectionTileSize:     800,
@@ -1922,13 +2004,25 @@ window.OpenSeadragon = window.OpenSeadragon || function( options ){
 
         /**
          * Makes an AJAX request.
-         * @function
-         * @param {String} url - the url to request
-         * @param {Function} onSuccess - a function to call on a successful response
-         * @param {Function} onError - a function to call on when an error occurs
+         * @param {Object} options
+         * @param {String} options.url - the url to request
+         * @param {Function} options.success - a function to call on a successful response
+         * @param {Function} options.error - a function to call on when an error occurs
+         * @param {Boolean} [options.withCredentials=false] - whether to set the XHR's withCredentials
          * @throws {Error}
          */
         makeAjaxRequest: function( url, onSuccess, onError ) {
+            var withCredentials;
+
+            // Note that our preferred API is that you pass in a single object; the named
+            // arguments are for legacy support.
+            if( $.isPlainObject( url ) ){
+                onSuccess = url.success;
+                onError = url.error;
+                withCredentials = url.withCredentials;
+                url = url.url;
+            }
+
             var protocol = $.getUrlProtocol( url );
             var request = $.createAjaxRequest( protocol === "file:" );
 
@@ -1941,9 +2035,12 @@ window.OpenSeadragon = window.OpenSeadragon || function( options ){
                 if ( request.readyState == 4 ) {
                     request.onreadystatechange = function(){};
 
-                    var successStatus =
-                        protocol === "http:" || protocol === "https:" ? 200 : 0;
-                    if ( request.status === successStatus ) {
+                    // With protocols other than http/https, the status is 200
+                    // on Firefox and 0 on other browsers
+                    if ( request.status === 200 ||
+                        ( request.status === 0 &&
+                          protocol !== "http:" &&
+                          protocol !== "https:" )) {
                         onSuccess( request );
                     } else {
                         $.console.log( "AJAX request returned %d: %s", request.status, url );
@@ -1954,6 +2051,10 @@ window.OpenSeadragon = window.OpenSeadragon || function( options ){
                     }
                 }
             };
+
+            if (withCredentials) {
+                request.withCredentials = true;
+            }
 
             try {
                 request.open( "GET", url, true );
@@ -1981,8 +2082,40 @@ window.OpenSeadragon = window.OpenSeadragon || function( options ){
 
                 request.onreadystatechange = function(){};
 
-                if ( $.isFunction( onError ) ) {
-                    onError( request, e );
+                if (window.XDomainRequest) { // IE9 or IE8 might as well try to use XDomainRequest
+                    var xdr = new XDomainRequest();
+                    if (xdr) {
+                        xdr.onload = function (e) {
+                            if ( $.isFunction( onSuccess ) ) {
+                                onSuccess({ // Faking an xhr object
+                                    responseText: xdr.responseText,
+                                    status: 200, // XDomainRequest doesn't support status codes, so we just fake one! :/
+                                    statusText: 'OK'
+                                });
+                            }
+                        };
+                        xdr.onerror = function (e) {
+                            if ( $.isFunction ( onError ) ) {
+                                onError({ // Faking an xhr object
+                                    responseText: xdr.responseText,
+                                    status: 444, // 444 No Response
+                                    statusText: 'An error happened. Due to an XDomainRequest deficiency we can not extract any information about this error. Upgrade your browser.'
+                                });
+                            }
+                        };
+                        try {
+                            xdr.open('GET', url);
+                            xdr.send();
+                        } catch (e2) {
+                            if ( $.isFunction( onError ) ) {
+                                onError( request, e );
+                            }
+                        }
+                    }
+                } else {
+                    if ( $.isFunction( onError ) ) {
+                        onError( request, e );
+                    }
                 }
             }
         },
@@ -2112,6 +2245,24 @@ window.OpenSeadragon = window.OpenSeadragon || function( options ){
             return $.parseXml( string );
         },
 
+        /**
+         * Parses a JSON string into a Javascript object.
+         * @function
+         * @param {String} string
+         * @returns {Object}
+         */
+        parseJSON: function(string) {
+            if (window.JSON && window.JSON.parse) {
+                $.parseJSON = window.JSON.parse;
+            } else {
+                // Should only be used by IE8 in non standards mode
+                $.parseJSON = function(string) {
+                    /*jshint evil:true*/
+                    return eval('(' + string + ')');
+                };
+            }
+            return $.parseJSON(string);
+        },
 
         /**
          * Reports whether the image format is supported for tiling in this
@@ -2906,7 +3057,10 @@ $.EventSource.prototype = /** @lends OpenSeadragon.EventSource.prototype */{
 
 (function ( $ ) {
 
-        // dictionary from hash to private properties
+    // All MouseTracker instances
+    var MOUSETRACKERS  = [];
+
+    // dictionary from hash to private properties
     var THIS           = {};
 
 
@@ -2923,6 +3077,9 @@ $.EventSource.prototype = /** @lends OpenSeadragon.EventSource.prototype */{
      * @param {Element|String} options.element
      *      A reference to an element or an element id for which the pointer/key
      *      events will be monitored.
+     * @param {Boolean} [options.startDisabled=false]
+     *      If true, event tracking on the element will not start until
+     *      {@link OpenSeadragon.MouseTracker.setTracking|setTracking} is called.
      * @param {Number} options.clickTimeThreshold
      *      The number of milliseconds within which a pointer down-up event combination
      *      will be treated as a click gesture.
@@ -2944,8 +3101,12 @@ $.EventSource.prototype = /** @lends OpenSeadragon.EventSource.prototype */{
      *      An optional handler for pointer exit.
      * @param {OpenSeadragon.EventHandler} [options.pressHandler=null]
      *      An optional handler for pointer press.
+     * @param {OpenSeadragon.EventHandler} [options.nonPrimaryPressHandler=null]
+     *      An optional handler for pointer non-primary button press.
      * @param {OpenSeadragon.EventHandler} [options.releaseHandler=null]
      *      An optional handler for pointer release.
+     * @param {OpenSeadragon.EventHandler} [options.nonPrimaryReleaseHandler=null]
+     *      An optional handler for pointer non-primary button release.
      * @param {OpenSeadragon.EventHandler} [options.moveHandler=null]
      *      An optional handler for pointer move.
      * @param {OpenSeadragon.EventHandler} [options.scrollHandler=null]
@@ -2960,6 +3121,10 @@ $.EventSource.prototype = /** @lends OpenSeadragon.EventSource.prototype */{
      *      An optional handler for after a drag gesture.
      * @param {OpenSeadragon.EventHandler} [options.pinchHandler=null]
      *      An optional handler for the pinch gesture.
+     * @param {OpenSeadragon.EventHandler} [options.keyDownHandler=null]
+     *      An optional handler for keydown.
+     * @param {OpenSeadragon.EventHandler} [options.keyUpHandler=null]
+     *      An optional handler for keyup.
      * @param {OpenSeadragon.EventHandler} [options.keyHandler=null]
      *      An optional handler for keypress.
      * @param {OpenSeadragon.EventHandler} [options.focusHandler=null]
@@ -2970,6 +3135,8 @@ $.EventSource.prototype = /** @lends OpenSeadragon.EventSource.prototype */{
      *      Arbitrary object to be passed unchanged to any attached handler methods.
      */
     $.MouseTracker = function ( options ) {
+
+        MOUSETRACKERS.push( this );
 
         var args = arguments;
 
@@ -2989,7 +3156,7 @@ $.EventSource.prototype = /** @lends OpenSeadragon.EventSource.prototype */{
          */
         this.element            = $.getElement( options.element );
         /**
-         * The number of milliseconds within which a pointer down-up event combination 
+         * The number of milliseconds within which a pointer down-up event combination
          * will be treated as a click gesture.
          * @member {Number} clickTimeThreshold
          * @memberof OpenSeadragon.MouseTracker#
@@ -3016,24 +3183,28 @@ $.EventSource.prototype = /** @lends OpenSeadragon.EventSource.prototype */{
          * @memberof OpenSeadragon.MouseTracker#
          */
         this.dblClickDistThreshold = options.dblClickDistThreshold || $.DEFAULT_SETTINGS.dblClickDistThreshold;
-        this.userData           = options.userData        || null;
-        this.stopDelay          = options.stopDelay       || 50;
+        this.userData              = options.userData          || null;
+        this.stopDelay             = options.stopDelay         || 50;
 
-        this.enterHandler       = options.enterHandler    || null;
-        this.exitHandler        = options.exitHandler     || null;
-        this.pressHandler       = options.pressHandler    || null;
-        this.releaseHandler     = options.releaseHandler  || null;
-        this.moveHandler        = options.moveHandler     || null;
-        this.scrollHandler      = options.scrollHandler   || null;
-        this.clickHandler       = options.clickHandler    || null;
-        this.dblClickHandler    = options.dblClickHandler || null;
-        this.dragHandler        = options.dragHandler     || null;
-        this.dragEndHandler     = options.dragEndHandler  || null;
-        this.pinchHandler       = options.pinchHandler    || null;
-        this.stopHandler        = options.stopHandler     || null;
-        this.keyHandler         = options.keyHandler      || null;
-        this.focusHandler       = options.focusHandler    || null;
-        this.blurHandler        = options.blurHandler     || null;
+        this.enterHandler             = options.enterHandler             || null;
+        this.exitHandler              = options.exitHandler              || null;
+        this.pressHandler             = options.pressHandler             || null;
+        this.nonPrimaryPressHandler   = options.nonPrimaryPressHandler   || null;
+        this.releaseHandler           = options.releaseHandler           || null;
+        this.nonPrimaryReleaseHandler = options.nonPrimaryReleaseHandler || null;
+        this.moveHandler              = options.moveHandler              || null;
+        this.scrollHandler            = options.scrollHandler            || null;
+        this.clickHandler             = options.clickHandler             || null;
+        this.dblClickHandler          = options.dblClickHandler          || null;
+        this.dragHandler              = options.dragHandler              || null;
+        this.dragEndHandler           = options.dragEndHandler           || null;
+        this.pinchHandler             = options.pinchHandler             || null;
+        this.stopHandler              = options.stopHandler              || null;
+        this.keyDownHandler           = options.keyDownHandler           || null;
+        this.keyUpHandler             = options.keyUpHandler             || null;
+        this.keyHandler               = options.keyHandler               || null;
+        this.focusHandler             = options.focusHandler             || null;
+        this.blurHandler              = options.blurHandler              || null;
 
         //Store private properties in a scope sealed hash map
         var _this = this;
@@ -3042,12 +3213,12 @@ $.EventSource.prototype = /** @lends OpenSeadragon.EventSource.prototype */{
          * @private
          * @property {Boolean} tracking
          *      Are we currently tracking pointer events for this element.
-         * @property {Boolean} capturing
-         *      Are we curruently capturing mouse events (legacy mouse events only).
          */
         THIS[ this.hash ] = {
             click:                 function ( event ) { onClick( _this, event ); },
             dblclick:              function ( event ) { onDblClick( _this, event ); },
+            keydown:               function ( event ) { onKeyDown( _this, event ); },
+            keyup:                 function ( event ) { onKeyUp( _this, event ); },
             keypress:              function ( event ) { onKeyPress( _this, event ); },
             focus:                 function ( event ) { onFocus( _this, event ); },
             blur:                  function ( event ) { onBlur( _this, event ); },
@@ -3057,6 +3228,8 @@ $.EventSource.prototype = /** @lends OpenSeadragon.EventSource.prototype */{
             DOMMouseScroll:        function ( event ) { onMouseWheel( _this, event ); },
             MozMousePixelScroll:   function ( event ) { onMouseWheel( _this, event ); },
 
+            mouseenter:            function ( event ) { onMouseEnter( _this, event ); }, // Used on IE8 only
+            mouseleave:            function ( event ) { onMouseLeave( _this, event ); }, // Used on IE8 only
             mouseover:             function ( event ) { onMouseOver( _this, event ); },
             mouseout:              function ( event ) { onMouseOut( _this, event ); },
             mousedown:             function ( event ) { onMouseDown( _this, event ); },
@@ -3065,13 +3238,11 @@ $.EventSource.prototype = /** @lends OpenSeadragon.EventSource.prototype */{
             mousemove:             function ( event ) { onMouseMove( _this, event ); },
             mousemovecaptured:     function ( event ) { onMouseMoveCaptured( _this, event ); },
 
-            mouseoutdocument:      function ( event ) { onMouseOutDocument( _this, event ); },
-
-            touchenter:            function ( event ) { onTouchEnter( _this, event ); },
-            touchleave:            function ( event ) { onTouchLeave( _this, event ); },
             touchstart:            function ( event ) { onTouchStart( _this, event ); },
             touchend:              function ( event ) { onTouchEnd( _this, event ); },
+            touchendcaptured:      function ( event ) { onTouchEndCaptured( _this, event ); },
             touchmove:             function ( event ) { onTouchMove( _this, event ); },
+            touchmovecaptured:     function ( event ) { onTouchMoveCaptured( _this, event ); },
             touchcancel:           function ( event ) { onTouchCancel( _this, event ); },
 
             gesturestart:          function ( event ) { onGestureStart( _this, event ); },
@@ -3081,10 +3252,6 @@ $.EventSource.prototype = /** @lends OpenSeadragon.EventSource.prototype */{
             MSPointerOver:         function ( event ) { onPointerOver( _this, event ); },
             pointerout:            function ( event ) { onPointerOut( _this, event ); },
             MSPointerOut:          function ( event ) { onPointerOut( _this, event ); },
-
-            pointeroutdocument:    function ( event ) { onPointerOutDocument( _this, event ); },
-            MSPointerOutdocument:  function ( event ) { onPointerOutDocument( _this, event ); },
-
             pointerdown:           function ( event ) { onPointerDown( _this, event ); },
             MSPointerDown:         function ( event ) { onPointerDown( _this, event ); },
             pointerup:             function ( event ) { onPointerUp( _this, event ); },
@@ -3100,15 +3267,9 @@ $.EventSource.prototype = /** @lends OpenSeadragon.EventSource.prototype */{
 
             // Active pointers lists. Array of GesturePointList objects, one for each pointer device type.
             // GesturePointList objects are added each time a pointer is tracked by a new pointer device type (see getActivePointersListByType()).
-            // Active pointers are any pointer being tracked for this element which are in the hit-test area 
+            // Active pointers are any pointer being tracked for this element which are in the hit-test area
             //     of the element (for hover-capable devices) and/or have contact or a button press initiated in the element.
             activePointersLists:   [],
-
-            // Legacy mouse capture tracking
-            capturing:             false,
-
-            // Pointer event model capture tracking
-            pointerCaptureCount:   0,
 
             // Tracking for double-click gesture
             lastClickPos:          null,
@@ -3122,6 +3283,9 @@ $.EventSource.prototype = /** @lends OpenSeadragon.EventSource.prototype */{
             currentPinchCenter:    null
         };
 
+        if ( !options.startDisabled ) {
+            this.setTracking( true );
+        }
     };
 
     $.MouseTracker.prototype = /** @lends OpenSeadragon.MouseTracker.prototype */{
@@ -3131,8 +3295,17 @@ $.EventSource.prototype = /** @lends OpenSeadragon.EventSource.prototype */{
          * @function
          */
         destroy: function () {
+            var i;
+
             stopTracking( this );
             this.element = null;
+
+            for ( i = 0; i < MOUSETRACKERS.length; i++ ) {
+                if ( MOUSETRACKERS[ i ] === this ) {
+                    MOUSETRACKERS.splice( i, 1 );
+                    break;
+                }
+            }
 
             THIS[ this.hash ] = null;
             delete THIS[ this.hash ];
@@ -3189,6 +3362,24 @@ $.EventSource.prototype = /** @lends OpenSeadragon.EventSource.prototype */{
         },
 
         /**
+         * Returns the total number of pointers currently active on the tracked element.
+         * @function
+         * @returns {Number}
+         */
+        getActivePointerCount: function () {
+            var delegate = THIS[ this.hash ],
+                i,
+                len = delegate.activePointersLists.length,
+                count = 0;
+
+            for ( i = 0; i < len; i++ ) {
+                count += delegate.activePointersLists[ i ].getLength();
+            }
+
+            return count;
+        },
+
+        /**
          * Implement or assign implementation to these handlers during or after
          * calling the constructor.
          * @function
@@ -3202,6 +3393,8 @@ $.EventSource.prototype = /** @lends OpenSeadragon.EventSource.prototype */{
          * @param {Number} event.buttons
          *      Current buttons pressed.
          *      Combination of bit flags 0: none, 1: primary (or touch contact), 2: secondary, 4: aux (often middle), 8: X1 (often back), 16: X2 (often forward), 32: pen eraser.
+         * @param {Number} event.pointers
+         *      Number of pointers (all types) active in the tracked element.
          * @param {Boolean} event.insideElementPressed
          *      True if the left mouse button is currently being pressed and was
          *      initiated inside the tracked element, otherwise false.
@@ -3232,6 +3425,8 @@ $.EventSource.prototype = /** @lends OpenSeadragon.EventSource.prototype */{
          * @param {Number} event.buttons
          *      Current buttons pressed.
          *      Combination of bit flags 0: none, 1: primary (or touch contact), 2: secondary, 4: aux (often middle), 8: X1 (often back), 16: X2 (often forward), 32: pen eraser.
+         * @param {Number} event.pointers
+         *      Number of pointers (all types) active in the tracked element.
          * @param {Boolean} event.insideElementPressed
          *      True if the left mouse button is currently being pressed and was
          *      initiated inside the tracked element, otherwise false.
@@ -3284,6 +3479,34 @@ $.EventSource.prototype = /** @lends OpenSeadragon.EventSource.prototype */{
          *     "mouse", "touch", "pen", etc.
          * @param {OpenSeadragon.Point} event.position
          *      The position of the event relative to the tracked element.
+         * @param {Number} event.button
+         *      Button which caused the event.
+         *      -1: none, 0: primary/left, 1: aux/middle, 2: secondary/right, 3: X1/back, 4: X2/forward, 5: pen eraser.
+         * @param {Number} event.buttons
+         *      Current buttons pressed.
+         *      Combination of bit flags 0: none, 1: primary (or touch contact), 2: secondary, 4: aux (often middle), 8: X1 (often back), 16: X2 (often forward), 32: pen eraser.
+         * @param {Boolean} event.isTouchEvent
+         *      True if the original event is a touch event, otherwise false. <span style="color:red;">Deprecated. Use pointerType and/or originalEvent instead.</span>
+         * @param {Object} event.originalEvent
+         *      The original event object.
+         * @param {Boolean} event.preventDefaultAction
+         *      Set to true to prevent the tracker subscriber from performing its default action (subscriber implementation dependent). Default: false.
+         * @param {Object} event.userData
+         *      Arbitrary user-defined object.
+         */
+        nonPrimaryPressHandler: function () { },
+
+        /**
+         * Implement or assign implementation to these handlers during or after
+         * calling the constructor.
+         * @function
+         * @param {Object} event
+         * @param {OpenSeadragon.MouseTracker} event.eventSource
+         *      A reference to the tracker instance.
+         * @param {String} event.pointerType
+         *     "mouse", "touch", "pen", etc.
+         * @param {OpenSeadragon.Point} event.position
+         *      The position of the event relative to the tracked element.
          * @param {Number} event.buttons
          *      Current buttons pressed.
          *      Combination of bit flags 0: none, 1: primary (or touch contact), 2: secondary, 4: aux (often middle), 8: X1 (often back), 16: X2 (often forward), 32: pen eraser.
@@ -3302,6 +3525,34 @@ $.EventSource.prototype = /** @lends OpenSeadragon.EventSource.prototype */{
          *      Arbitrary user-defined object.
          */
         releaseHandler: function () { },
+
+        /**
+         * Implement or assign implementation to these handlers during or after
+         * calling the constructor.
+         * @function
+         * @param {Object} event
+         * @param {OpenSeadragon.MouseTracker} event.eventSource
+         *      A reference to the tracker instance.
+         * @param {String} event.pointerType
+         *     "mouse", "touch", "pen", etc.
+         * @param {OpenSeadragon.Point} event.position
+         *      The position of the event relative to the tracked element.
+         * @param {Number} event.button
+         *      Button which caused the event.
+         *      -1: none, 0: primary/left, 1: aux/middle, 2: secondary/right, 3: X1/back, 4: X2/forward, 5: pen eraser.
+         * @param {Number} event.buttons
+         *      Current buttons pressed.
+         *      Combination of bit flags 0: none, 1: primary (or touch contact), 2: secondary, 4: aux (often middle), 8: X1 (often back), 16: X2 (often forward), 32: pen eraser.
+         * @param {Boolean} event.isTouchEvent
+         *      True if the original event is a touch event, otherwise false. <span style="color:red;">Deprecated. Use pointerType and/or originalEvent instead.</span>
+         * @param {Object} event.originalEvent
+         *      The original event object.
+         * @param {Boolean} event.preventDefaultAction
+         *      Set to true to prevent the tracker subscriber from performing its default action (subscriber implementation dependent). Default: false.
+         * @param {Object} event.userData
+         *      Arbitrary user-defined object.
+         */
+        nonPrimaryReleaseHandler: function () { },
 
         /**
          * Implement or assign implementation to these handlers during or after
@@ -3529,8 +3780,66 @@ $.EventSource.prototype = /** @lends OpenSeadragon.EventSource.prototype */{
          *      A reference to the tracker instance.
          * @param {Number} event.keyCode
          *      The key code that was pressed.
+         * @param {Boolean} event.ctrl
+         *      True if the ctrl key was pressed during this event.
          * @param {Boolean} event.shift
          *      True if the shift key was pressed during this event.
+         * @param {Boolean} event.alt
+         *      True if the alt key was pressed during this event.
+         * @param {Boolean} event.meta
+         *      True if the meta key was pressed during this event.
+         * @param {Object} event.originalEvent
+         *      The original event object.
+         * @param {Boolean} event.preventDefaultAction
+         *      Set to true to prevent the tracker subscriber from performing its default action (subscriber implementation dependent). Default: false.
+         * @param {Object} event.userData
+         *      Arbitrary user-defined object.
+         */
+        keyDownHandler: function () { },
+
+        /**
+         * Implement or assign implementation to these handlers during or after
+         * calling the constructor.
+         * @function
+         * @param {Object} event
+         * @param {OpenSeadragon.MouseTracker} event.eventSource
+         *      A reference to the tracker instance.
+         * @param {Number} event.keyCode
+         *      The key code that was pressed.
+         * @param {Boolean} event.ctrl
+         *      True if the ctrl key was pressed during this event.
+         * @param {Boolean} event.shift
+         *      True if the shift key was pressed during this event.
+         * @param {Boolean} event.alt
+         *      True if the alt key was pressed during this event.
+         * @param {Boolean} event.meta
+         *      True if the meta key was pressed during this event.
+         * @param {Object} event.originalEvent
+         *      The original event object.
+         * @param {Boolean} event.preventDefaultAction
+         *      Set to true to prevent the tracker subscriber from performing its default action (subscriber implementation dependent). Default: false.
+         * @param {Object} event.userData
+         *      Arbitrary user-defined object.
+         */
+        keyUpHandler: function () { },
+
+        /**
+         * Implement or assign implementation to these handlers during or after
+         * calling the constructor.
+         * @function
+         * @param {Object} event
+         * @param {OpenSeadragon.MouseTracker} event.eventSource
+         *      A reference to the tracker instance.
+         * @param {Number} event.keyCode
+         *      The key code that was pressed.
+         * @param {Boolean} event.ctrl
+         *      True if the ctrl key was pressed during this event.
+         * @param {Boolean} event.shift
+         *      True if the shift key was pressed during this event.
+         * @param {Boolean} event.alt
+         *      True if the alt key was pressed during this event.
+         * @param {Boolean} event.meta
+         *      True if the meta key was pressed during this event.
          * @param {Object} event.originalEvent
          *      The original event object.
          * @param {Boolean} event.preventDefaultAction
@@ -3669,6 +3978,8 @@ $.EventSource.prototype = /** @lends OpenSeadragon.EventSource.prototype */{
 // Pointer event model and feature detection
 ///////////////////////////////////////////////////////////////////////////////
 
+    $.MouseTracker.captureElement = document;
+
     /**
      * Detect available mouse wheel event name.
      */
@@ -3688,15 +3999,17 @@ $.EventSource.prototype = /** @lends OpenSeadragon.EventSource.prototype */{
     /**
      * Detect browser pointer device event model(s) and build appropriate list of events to subscribe to.
      */
-    $.MouseTracker.subscribeEvents = [ "click", "dblclick", "keypress", "focus", "blur", $.MouseTracker.wheelEventName ];
+    $.MouseTracker.subscribeEvents = [ "click", "dblclick", "keydown", "keyup", "keypress", "focus", "blur", $.MouseTracker.wheelEventName ];
 
     if( $.MouseTracker.wheelEventName == "DOMMouseScroll" ) {
         // Older Firefox
         $.MouseTracker.subscribeEvents.push( "MozMousePixelScroll" );
     }
 
-    if ( window.PointerEvent ) {
+    // Note: window.navigator.pointerEnable is deprecated on IE 11 and not part of W3C spec.
+    if ( window.PointerEvent && ( window.navigator.pointerEnabled || $.Browser.vendor !== $.BROWSERS.IE ) ) {
         // IE11 and other W3C Pointer Event implementations (see http://www.w3.org/TR/pointerevents)
+        $.MouseTracker.havePointerEvents = true;
         $.MouseTracker.subscribeEvents.push( "pointerover", "pointerout", "pointerdown", "pointerup", "pointermove", "pointercancel" );
         $.MouseTracker.unprefixedPointerEvents = true;
         if( navigator.maxTouchPoints ) {
@@ -3704,10 +4017,10 @@ $.EventSource.prototype = /** @lends OpenSeadragon.EventSource.prototype */{
         } else {
             $.MouseTracker.maxTouchPoints = 0;
         }
-        $.MouseTracker.haveTouchEnter = false;
         $.MouseTracker.haveMouseEnter = false;
-    } else if ( window.MSPointerEvent ) {
+    } else if ( window.MSPointerEvent && window.navigator.msPointerEnabled ) {
         // IE10
+        $.MouseTracker.havePointerEvents = true;
         $.MouseTracker.subscribeEvents.push( "MSPointerOver", "MSPointerOut", "MSPointerDown", "MSPointerUp", "MSPointerMove", "MSPointerCancel" );
         $.MouseTracker.unprefixedPointerEvents = false;
         if( navigator.msMaxTouchPoints ) {
@@ -3715,33 +4028,34 @@ $.EventSource.prototype = /** @lends OpenSeadragon.EventSource.prototype */{
         } else {
             $.MouseTracker.maxTouchPoints = 0;
         }
-        $.MouseTracker.haveTouchEnter = false;
         $.MouseTracker.haveMouseEnter = false;
     } else {
         // Legacy W3C mouse events
-        $.MouseTracker.subscribeEvents.push( "mouseover", "mouseout", "mousedown", "mouseup", "mousemove" );
-        $.MouseTracker.haveMouseEnter = false;
-        if ( 'ontouchstart' in window ) {
-            // iOS, Android, and other W3c Touch Event implementations (see http://www.w3.org/TR/2011/WD-touch-events-20110505)
-            $.MouseTracker.subscribeEvents.push( "touchstart", "touchend", "touchmove", "touchcancel" );
-            if ( 'ontouchenter' in window ) {
-                $.MouseTracker.subscribeEvents.push( "touchenter", "touchleave" );
-                $.MouseTracker.haveTouchEnter = true;
-            } else {
-                $.MouseTracker.haveTouchEnter = false;
-            }
+        $.MouseTracker.havePointerEvents = false;
+        if ( $.Browser.vendor === $.BROWSERS.IE && $.Browser.version < 9 ) {
+            $.MouseTracker.subscribeEvents.push( "mouseenter", "mouseleave" );
+            $.MouseTracker.haveMouseEnter = true;
         } else {
-            $.MouseTracker.haveTouchEnter = false;
+            $.MouseTracker.subscribeEvents.push( "mouseover", "mouseout" );
+            $.MouseTracker.haveMouseEnter = false;
+        }
+        $.MouseTracker.subscribeEvents.push( "mousedown", "mouseup", "mousemove" );
+        if ( 'ontouchstart' in window ) {
+            // iOS, Android, and other W3c Touch Event implementations
+            //    (see http://www.w3.org/TR/touch-events/)
+            //    (see https://developer.apple.com/library/ios/documentation/AppleApplications/Reference/SafariWebContent/HandlingEvents/HandlingEvents.html)
+            //    (see https://developer.apple.com/library/safari/documentation/AppleApplications/Reference/SafariWebContent/HandlingEvents/HandlingEvents.html)
+            $.MouseTracker.subscribeEvents.push( "touchstart", "touchend", "touchmove", "touchcancel" );
         }
         if ( 'ongesturestart' in window ) {
-            // iOS (see https://developer.apple.com/library/safari/documentation/UserExperience/Reference/GestureEventClassReference/GestureEvent/GestureEvent.html)
+            // iOS (see https://developer.apple.com/library/ios/documentation/AppleApplications/Reference/SafariWebContent/HandlingEvents/HandlingEvents.html)
             //   Subscribe to these to prevent default gesture handling
             $.MouseTracker.subscribeEvents.push( "gesturestart", "gesturechange" );
         }
         $.MouseTracker.mousePointerId = "legacy-mouse";
         $.MouseTracker.maxTouchPoints = 10;
     }
-    
+
 
 ///////////////////////////////////////////////////////////////////////////////
 // Classes and typedefs
@@ -3787,7 +4101,7 @@ $.EventSource.prototype = /** @lends OpenSeadragon.EventSource.prototype */{
     /**
      * @class GesturePointList
      * @classdesc Provides an abstraction for a set of active {@link OpenSeadragon.MouseTracker.GesturePoint|GesturePoint} objects for a given pointer device type.
-     *            Active pointers are any pointer being tracked for this element which are in the hit-test area 
+     *            Active pointers are any pointer being tracked for this element which are in the hit-test area
      *            of the element (for hover-capable devices) and/or have contact or a button press initiated in the element.
      * @memberof OpenSeadragon.MouseTracker
      * @param {String} type - The pointer device type: "mouse", "touch", "pen", etc.
@@ -3819,6 +4133,12 @@ $.EventSource.prototype = /** @lends OpenSeadragon.EventSource.prototype */{
          * @memberof OpenSeadragon.MouseTracker.GesturePointList#
          */
         this.clicks = 0;
+        /**
+         * Current number of captured pointers for the device.
+         * @member {Number} captureCount
+         * @memberof OpenSeadragon.MouseTracker.GesturePointList#
+         */
+        this.captureCount = 0;
     };
     $.MouseTracker.GesturePointList.prototype = /** @lends OpenSeadragon.MouseTracker.GesturePointList.prototype */{
         /**
@@ -3901,11 +4221,69 @@ $.EventSource.prototype = /** @lends OpenSeadragon.EventSource.prototype */{
             return null;
         }
     };
-    
+
 
 ///////////////////////////////////////////////////////////////////////////////
 // Utility functions
 ///////////////////////////////////////////////////////////////////////////////
+
+    /**
+     * Removes all tracked pointers.
+     * @private
+     * @inner
+     */
+    function clearTrackedPointers( tracker ) {
+        var delegate = THIS[ tracker.hash ],
+            i,
+            pointerListCount = delegate.activePointersLists.length;
+
+        for ( i = 0; i < pointerListCount; i++ ) {
+            if ( delegate.activePointersLists[ i ].captureCount > 0 ) {
+                $.removeEvent(
+                    $.MouseTracker.captureElement,
+                    'mousemove',
+                    delegate.mousemovecaptured,
+                    true
+                );
+                $.removeEvent(
+                    $.MouseTracker.captureElement,
+                    'mouseup',
+                    delegate.mouseupcaptured,
+                    true
+                );
+                $.removeEvent(
+                    $.MouseTracker.captureElement,
+                    $.MouseTracker.unprefixedPointerEvents ? 'pointermove' : 'MSPointerMove',
+                    delegate.pointermovecaptured,
+                    true
+                );
+                $.removeEvent(
+                    $.MouseTracker.captureElement,
+                    $.MouseTracker.unprefixedPointerEvents ? 'pointerup' : 'MSPointerUp',
+                    delegate.pointerupcaptured,
+                    true
+                );
+                $.removeEvent(
+                    $.MouseTracker.captureElement,
+                    'touchmove',
+                    delegate.touchmovecaptured,
+                    true
+                );
+                $.removeEvent(
+                    $.MouseTracker.captureElement,
+                    'touchend',
+                    delegate.touchendcaptured,
+                    true
+                );
+
+                delegate.activePointersLists[ i ].captureCount = 0;
+            }
+        }
+
+        for ( i = 0; i < pointerListCount; i++ ) {
+            delegate.activePointersLists.pop();
+        }
+    }
 
     /**
      * Starts tracking pointer events on the tracked element.
@@ -3927,15 +4305,8 @@ $.EventSource.prototype = /** @lends OpenSeadragon.EventSource.prototype */{
                     false
                 );
             }
-            
-            // handle pointer/mouse out of document body
-            if ( window.PointerEvent ) {
-              $.addEvent(document.body, "pointerout",  delegate.pointeroutdocument);
-            } else if ( window.MSPointerEvent ) {
-              $.addEvent(document.body, "pointerout",  delegate.MSPointerOutdocument);
-            } else {
-              $.addEvent(document.body, "mouseout",  delegate.mouseoutdocument);
-            }
+
+            clearTrackedPointers( tracker );
 
             delegate.tracking = true;
         }
@@ -3962,16 +4333,42 @@ $.EventSource.prototype = /** @lends OpenSeadragon.EventSource.prototype */{
                 );
             }
 
-            // handle pointer/mouse out of document body
-            if ( window.PointerEvent ) {
-              $.removeEvent(document.body, "pointerout",  delegate.pointeroutdocument);
-            } else if ( window.MSPointerEvent ) {
-              $.removeEvent(document.body, "MSPointerOut",  delegate.MSPointerOutdocument);
-            } else {
-              $.removeEvent(document.body, "mouseout",  delegate.mouseoutdocument);
-            }
+            clearTrackedPointers( tracker );
 
             delegate.tracking = false;
+        }
+    }
+
+    /**
+     * @private
+     * @inner
+     */
+    function getCaptureEventParams( tracker, pointerType ) {
+        var delegate = THIS[ tracker.hash ];
+
+        if ( pointerType === 'pointerevent' ) {
+            return {
+                upName: $.MouseTracker.unprefixedPointerEvents ? 'pointerup' : 'MSPointerUp',
+                upHandler: delegate.pointerupcaptured,
+                moveName: $.MouseTracker.unprefixedPointerEvents ? 'pointermove' : 'MSPointerMove',
+                moveHandler: delegate.pointermovecaptured
+            };
+        } else if ( pointerType === 'mouse' ) {
+            return {
+                upName: 'mouseup',
+                upHandler: delegate.mouseupcaptured,
+                moveName: 'mousemove',
+                moveHandler: delegate.mousemovecaptured
+            };
+        } else if ( pointerType === 'touch' ) {
+            return {
+                upName: 'touchend',
+                upHandler: delegate.touchendcaptured,
+                moveName: 'touchmove',
+                moveHandler: delegate.touchmovecaptured
+            };
+        } else {
+            throw new Error( "MouseTracker.getCaptureEventParams: Unknown pointer type." );
         }
     }
 
@@ -3980,27 +4377,32 @@ $.EventSource.prototype = /** @lends OpenSeadragon.EventSource.prototype */{
      * @private
      * @inner
      */
-    function capturePointer( tracker, isLegacyMouse ) {
-        var delegate = THIS[ tracker.hash ];
+    function capturePointer( tracker, pointerType ) {
+        var pointsList = tracker.getActivePointersListByType( pointerType ),
+            eventParams;
 
-        delegate.pointerCaptureCount++;
-        //$.console.log('pointerCaptureCount++ ', delegate.pointerCaptureCount);
+        pointsList.captureCount++;
 
-        if ( delegate.pointerCaptureCount === 1 ) {
-            // We emulate mouse capture by hanging listeners on the window object.
-            //    (Note we listen on the capture phase so the captured handlers will get called first)
-            $.addEvent(
-                window,
-                isLegacyMouse ? 'mouseup' : ($.MouseTracker.unprefixedPointerEvents ? 'pointerup' : 'MSPointerUp'),
-                isLegacyMouse ? delegate.mouseupcaptured : delegate.pointerupcaptured,
-                true
-            );
-            $.addEvent(
-                window,
-                isLegacyMouse ? 'mousemove' : ($.MouseTracker.unprefixedPointerEvents ? 'pointermove' : 'MSPointerMove'),
-                isLegacyMouse ? delegate.mousemovecaptured : delegate.pointermovecaptured,
-                true
-            );
+        if ( pointsList.captureCount === 1 ) {
+            if ( $.Browser.vendor === $.BROWSERS.IE && $.Browser.version < 9 ) {
+                tracker.element.setCapture( true );
+            } else {
+                eventParams = getCaptureEventParams( tracker, $.MouseTracker.havePointerEvents ? 'pointerevent' : pointerType );
+                // We emulate mouse capture by hanging listeners on the document object.
+                //    (Note we listen on the capture phase so the captured handlers will get called first)
+                $.addEvent(
+                    $.MouseTracker.captureElement,
+                    eventParams.upName,
+                    eventParams.upHandler,
+                    true
+                );
+                $.addEvent(
+                    $.MouseTracker.captureElement,
+                    eventParams.moveName,
+                    eventParams.moveHandler,
+                    true
+                );
+            }
         }
     }
 
@@ -4010,27 +4412,32 @@ $.EventSource.prototype = /** @lends OpenSeadragon.EventSource.prototype */{
      * @private
      * @inner
      */
-    function releasePointer( tracker, isLegacyMouse ) {
-        var delegate = THIS[ tracker.hash ];
+    function releasePointer( tracker, pointerType ) {
+        var pointsList = tracker.getActivePointersListByType( pointerType ),
+            eventParams;
 
-        delegate.pointerCaptureCount--;
-        //$.console.log('pointerCaptureCount-- ', delegate.pointerCaptureCount);
+        pointsList.captureCount--;
 
-        if ( delegate.pointerCaptureCount === 0 ) {
-            // We emulate mouse capture by hanging listeners on the window object.
-            //    (Note we listen on the capture phase so the captured handlers will get called first)
-            $.removeEvent(
-                window,
-                isLegacyMouse ? 'mousemove' : ($.MouseTracker.unprefixedPointerEvents ? 'pointermove' : 'MSPointerMove'),
-                isLegacyMouse ? delegate.mousemovecaptured : delegate.pointermovecaptured,
-                true
-            );
-            $.removeEvent(
-                window,
-                isLegacyMouse ? 'mouseup' : ($.MouseTracker.unprefixedPointerEvents ? 'pointerup' : 'MSPointerUp'),
-                isLegacyMouse ? delegate.mouseupcaptured : delegate.pointerupcaptured,
-                true
-            );
+        if ( pointsList.captureCount === 0 ) {
+            if ( $.Browser.vendor === $.BROWSERS.IE && $.Browser.version < 9 ) {
+                tracker.element.releaseCapture();
+            } else {
+                eventParams = getCaptureEventParams( tracker, $.MouseTracker.havePointerEvents ? 'pointerevent' : pointerType );
+                // We emulate mouse capture by hanging listeners on the document object.
+                //    (Note we listen on the capture phase so the captured handlers will get called first)
+                $.removeEvent(
+                    $.MouseTracker.captureElement,
+                    eventParams.moveName,
+                    eventParams.moveHandler,
+                    true
+                );
+                $.removeEvent(
+                    $.MouseTracker.captureElement,
+                    eventParams.upName,
+                    eventParams.upHandler,
+                    true
+                );
+            }
         }
     }
 
@@ -4133,17 +4540,77 @@ $.EventSource.prototype = /** @lends OpenSeadragon.EventSource.prototype */{
      * @private
      * @inner
      */
+    function onKeyDown( tracker, event ) {
+        //$.console.log( "keydown %s %s %s %s %s", event.keyCode, event.charCode, event.ctrlKey, event.shiftKey, event.altKey );
+        var propagate;
+        if ( tracker.keyDownHandler ) {
+            event = $.getEvent( event );
+            propagate = tracker.keyDownHandler(
+                {
+                    eventSource:          tracker,
+                    keyCode:              event.keyCode ? event.keyCode : event.charCode,
+                    ctrl:                 event.ctrlKey,
+                    shift:                event.shiftKey,
+                    alt:                  event.altKey,
+                    meta:                 event.metaKey,
+                    originalEvent:        event,
+                    preventDefaultAction: false,
+                    userData:             tracker.userData
+                }
+            );
+            if ( !propagate ) {
+                $.cancelEvent( event );
+            }
+        }
+    }
+
+
+    /**
+     * @private
+     * @inner
+     */
+    function onKeyUp( tracker, event ) {
+        //$.console.log( "keyup %s %s %s %s %s", event.keyCode, event.charCode, event.ctrlKey, event.shiftKey, event.altKey );
+        var propagate;
+        if ( tracker.keyUpHandler ) {
+            event = $.getEvent( event );
+            propagate = tracker.keyUpHandler(
+                {
+                    eventSource:          tracker,
+                    keyCode:              event.keyCode ? event.keyCode : event.charCode,
+                    ctrl:                 event.ctrlKey,
+                    shift:                event.shiftKey,
+                    alt:                  event.altKey,
+                    meta:                 event.metaKey,
+                    originalEvent:        event,
+                    preventDefaultAction: false,
+                    userData:             tracker.userData
+                }
+            );
+            if ( !propagate ) {
+                $.cancelEvent( event );
+            }
+        }
+    }
+
+
+    /**
+     * @private
+     * @inner
+     */
     function onKeyPress( tracker, event ) {
-        //console.log( "keypress %s %s %s %s %s", event.keyCode, event.charCode, event.ctrlKey, event.shiftKey, event.altKey );
+        //$.console.log( "keypress %s %s %s %s %s", event.keyCode, event.charCode, event.ctrlKey, event.shiftKey, event.altKey );
         var propagate;
         if ( tracker.keyHandler ) {
             event = $.getEvent( event );
             propagate = tracker.keyHandler(
                 {
                     eventSource:          tracker,
-                    position:             getMouseRelative( event, tracker.element ),
                     keyCode:              event.keyCode ? event.keyCode : event.charCode,
+                    ctrl:                 event.ctrlKey,
                     shift:                event.shiftKey,
+                    alt:                  event.altKey,
+                    meta:                 event.metaKey,
                     originalEvent:        event,
                     preventDefaultAction: false,
                     userData:             tracker.userData
@@ -4250,7 +4717,7 @@ $.EventSource.prototype = /** @lends OpenSeadragon.EventSource.prototype */{
 
 
     /**
-     * Handles 'wheel' events. 
+     * Handles 'wheel' events.
      * The event may be simulated by the legacy mouse wheel event handler (onMouseWheel()).
      *
      * @private
@@ -4305,19 +4772,39 @@ $.EventSource.prototype = /** @lends OpenSeadragon.EventSource.prototype */{
 
 
     /**
+     * Only used on IE 8
+     *
+     * @private
+     * @inner
+     */
+    function onMouseEnter( tracker, event ) {
+        event = $.getEvent( event );
+
+        handleMouseEnter( tracker, event );
+    }
+
+
+    /**
      * @private
      * @inner
      */
     function onMouseOver( tracker, event ) {
-        var gPoint;
-
         event = $.getEvent( event );
 
-        if ( this === event.relatedTarget || isParentChild( event.currentTarget, event.relatedTarget ) ) {
+        if ( event.currentTarget === event.relatedTarget || isParentChild( event.currentTarget, event.relatedTarget ) ) {
             return;
         }
 
-        gPoint = {
+        handleMouseEnter( tracker, event );
+    }
+
+
+    /**
+     * @private
+     * @inner
+     */
+    function handleMouseEnter( tracker, event ) {
+        var gPoint = {
             id: $.MouseTracker.mousePointerId,
             type: 'mouse',
             isPrimary: true,
@@ -4330,19 +4817,39 @@ $.EventSource.prototype = /** @lends OpenSeadragon.EventSource.prototype */{
 
 
     /**
+     * Only used on IE 8
+     *
+     * @private
+     * @inner
+     */
+    function onMouseLeave( tracker, event ) {
+        event = $.getEvent( event );
+
+        handleMouseExit( tracker, event );
+    }
+
+
+    /**
      * @private
      * @inner
      */
     function onMouseOut( tracker, event ) {
-        var gPoint;
-
         event = $.getEvent( event );
 
-        if ( this === event.relatedTarget || isParentChild( event.currentTarget, event.relatedTarget ) ) {
+        if ( event.currentTarget === event.relatedTarget || isParentChild( event.currentTarget, event.relatedTarget ) ) {
             return;
         }
 
-        gPoint = {
+        handleMouseExit( tracker, event );
+    }
+
+
+    /**
+     * @private
+     * @inner
+     */
+    function handleMouseExit( tracker, event ) {
+        var gPoint = {
             id: $.MouseTracker.mousePointerId,
             type: 'mouse',
             isPrimary: true,
@@ -4353,35 +4860,31 @@ $.EventSource.prototype = /** @lends OpenSeadragon.EventSource.prototype */{
         updatePointersExit( tracker, event, [ gPoint ] );
     }
 
+
     /**
-     * This handler is used to handle the case where the mouse is dragged out of the window, it should cause the drag to be properly released.
-     *
+     * Returns a W3C DOM level 3 standard button value given an event.button property:
+     *   -1 == none, 0 == primary/left, 1 == middle, 2 == secondary/right, 3 == X1/back, 4 == X2/forward, 5 == eraser (pen)
      * @private
      * @inner
      */
-    function onMouseOutDocument( tracker, event ) {
-        event = $.getEvent( event );
-
-        var html = document.getElementsByTagName("html")[0];
-        var target = event.target || event.srcElement;
-        if ((event.relatedTarget!==html && event.relatedTarget!==null) || event.currentTarget !== document.body) {
-            return; // not a mouseout of the iframe
-        }
-
-        var gPoint = {
-            id: $.MouseTracker.mousePointerId,
-            type: 'mouse',
-            isPrimary: true,
-            currentPos: getMouseAbsolute( event ),
-            currentTime: $.now()
-        };
-
-        event.buttons = undefined;
-
-        if ( updatePointersUp( tracker, event, [ gPoint ], 0 ) ) {
-            releasePointer( tracker, true );
+    function getStandardizedButton( button ) {
+        if ( $.Browser.vendor === $.BROWSERS.IE && $.Browser.version < 9 ) {
+            // On IE 8, 0 == none, 1 == left, 2 == right, 3 == left and right, 4 == middle, 5 == left and middle, 6 == right and middle, 7 == all three
+            // TODO: Support chorded (multiple) button presses on IE 8?
+            if ( button === 1 ) {
+                return 0;
+            } else if ( button === 2 ) {
+                return 2;
+            } else if ( button === 4 ) {
+                return 1;
+            } else {
+                return -1;
+            }
+        } else {
+            return button;
         }
     }
+
 
     /**
      * @private
@@ -4400,9 +4903,9 @@ $.EventSource.prototype = /** @lends OpenSeadragon.EventSource.prototype */{
             currentTime: $.now()
         };
 
-        if ( updatePointersDown( tracker, event, [ gPoint ], event.button ) ) {
+        if ( updatePointersDown( tracker, event, [ gPoint ], getStandardizedButton( event.button ) ) ) {
             $.stopEvent( event );
-            capturePointer( tracker, true );
+            capturePointer( tracker, 'mouse' );
         }
 
         if ( tracker.clickHandler || tracker.dblClickHandler || tracker.pressHandler || tracker.dragHandler || tracker.dragEndHandler ) {
@@ -4449,10 +4952,11 @@ $.EventSource.prototype = /** @lends OpenSeadragon.EventSource.prototype */{
             currentTime: $.now()
         };
 
-        if ( updatePointersUp( tracker, event, [ gPoint ], event.button ) ) {
-            releasePointer( tracker, true );
+        if ( updatePointersUp( tracker, event, [ gPoint ], getStandardizedButton( event.button ) ) ) {
+            releasePointer( tracker, 'mouse' );
         }
     }
+
 
     /**
      * @private
@@ -4462,7 +4966,7 @@ $.EventSource.prototype = /** @lends OpenSeadragon.EventSource.prototype */{
         handleMouseMove( tracker, event );
    }
 
-    
+
     /**
      * This handler is attached to the window object (on the capture phase) to emulate mouse capture.
      * onMouseMove is still attached to the tracked element, so stop propagation to avoid processing twice.
@@ -4501,45 +5005,24 @@ $.EventSource.prototype = /** @lends OpenSeadragon.EventSource.prototype */{
      * @private
      * @inner
      */
-    function onTouchEnter( tracker, event ) {
+    function abortTouchContacts( tracker, event, pointsList ) {
         var i,
-            touchCount = event.changedTouches.length,
-            gPoints = [];
+            gPointCount = pointsList.getLength(),
+            abortGPoints = [];
 
-        for ( i = 0; i < touchCount; i++ ) {
-            gPoints.push( {
-                id: event.changedTouches[ i ].identifier,
-                type: 'touch',
-                // isPrimary not set - let the updatePointers functions determine it
-                currentPos: getMouseAbsolute( event.changedTouches[ i ] ),
-                currentTime: $.now()
-            } );
+        for ( i = 0; i < gPointCount; i++ ) {
+            abortGPoints.push( pointsList.getByIndex( i ) );
         }
 
-        updatePointersEnter( tracker, event, gPoints );
-    }
-
-
-    /**
-     * @private
-     * @inner
-     */
-    function onTouchLeave( tracker, event ) {
-        var i,
-            touchCount = event.changedTouches.length,
-            gPoints = [];
-
-        for ( i = 0; i < touchCount; i++ ) {
-            gPoints.push( {
-                id: event.changedTouches[ i ].identifier,
-                type: 'touch',
-                // isPrimary not set - let the updatePointers functions determine it
-                currentPos: getMouseAbsolute( event.changedTouches[ i ] ),
-                currentTime: $.now()
-            } );
+        if ( abortGPoints.length > 0 ) {
+            // simulate touchend
+            updatePointersUp( tracker, event, abortGPoints, 0 ); // 0 means primary button press/release or touch contact
+            // release pointer capture
+            pointsList.captureCount = 1;
+            releasePointer( tracker, 'touch' );
+            // simulate touchleave
+            updatePointersExit( tracker, event, abortGPoints );
         }
-
-        updatePointersExit( tracker, event, gPoints );
     }
 
 
@@ -4550,10 +5033,18 @@ $.EventSource.prototype = /** @lends OpenSeadragon.EventSource.prototype */{
     function onTouchStart( tracker, event ) {
         var time,
             i,
+            j,
             touchCount = event.changedTouches.length,
-            gPoints = [];
+            gPoints = [],
+            parentGPoints,
+            pointsList = tracker.getActivePointersListByType( 'touch' );
 
         time = $.now();
+
+        if ( pointsList.getLength() > event.touches.length - touchCount ) {
+            $.console.warn('Tracked touch contact count doesn\'t match event.touches.length. Removing all tracked touch pointers.');
+            abortTouchContacts( tracker, event, pointsList );
+        }
 
         for ( i = 0; i < touchCount; i++ ) {
             gPoints.push( {
@@ -4565,13 +5056,29 @@ $.EventSource.prototype = /** @lends OpenSeadragon.EventSource.prototype */{
             } );
         }
 
-        // simulate touchenter if not natively available
-        if ( !$.MouseTracker.haveTouchEnter ) {
-            updatePointersEnter( tracker, event, gPoints );
+        // simulate touchenter on our tracked element
+        updatePointersEnter( tracker, event, gPoints );
+
+        // simulate touchenter on our tracked element's tracked ancestor elements
+        for ( i = 0; i < MOUSETRACKERS.length; i++ ) {
+            if ( MOUSETRACKERS[ i ] !== tracker && MOUSETRACKERS[ i ].isTracking() && isParentChild( MOUSETRACKERS[ i ].element, tracker.element ) ) {
+                parentGPoints = [];
+                for ( j = 0; j < touchCount; j++ ) {
+                    parentGPoints.push( {
+                        id: event.changedTouches[ j ].identifier,
+                        type: 'touch',
+                        // isPrimary not set - let the updatePointers functions determine it
+                        currentPos: getMouseAbsolute( event.changedTouches[ j ] ),
+                        currentTime: time
+                    } );
+                }
+                updatePointersEnter( MOUSETRACKERS[ i ], event, parentGPoints );
+            }
         }
 
         if ( updatePointersDown( tracker, event, gPoints, 0 ) ) { // 0 means primary button press/release or touch contact
-            // Touch event model start, end, and move events are always captured so we don't need to capture explicitly
+            $.stopEvent( event );
+            capturePointer( tracker, 'touch' );
         }
 
         $.cancelEvent( event );
@@ -4583,10 +5090,34 @@ $.EventSource.prototype = /** @lends OpenSeadragon.EventSource.prototype */{
      * @inner
      */
     function onTouchEnd( tracker, event ) {
+        handleTouchEnd( tracker, event );
+    }
+
+
+    /**
+     * This handler is attached to the window object (on the capture phase) to emulate pointer capture.
+     * onTouchEnd is still attached to the tracked element, so stop propagation to avoid processing twice.
+     *
+     * @private
+     * @inner
+     */
+    function onTouchEndCaptured( tracker, event ) {
+        handleTouchEnd( tracker, event );
+        $.stopEvent( event );
+    }
+
+
+    /**
+     * @private
+     * @inner
+     */
+    function handleTouchEnd( tracker, event ) {
         var time,
             i,
+            j,
             touchCount = event.changedTouches.length,
-            gPoints = [];
+            gPoints = [],
+            parentGPoints;
 
         time = $.now();
 
@@ -4600,13 +5131,28 @@ $.EventSource.prototype = /** @lends OpenSeadragon.EventSource.prototype */{
             } );
         }
 
-        // Touch event model start, end, and move events are always captured so we don't need to release capture.
-        // We'll ignore the should-release-capture return value here
-        updatePointersUp( tracker, event, gPoints, 0 ); // 0 means primary button press/release or touch contact
+        if ( updatePointersUp( tracker, event, gPoints, 0 ) ) {
+            releasePointer( tracker, 'touch' );
+        }
 
-        // simulate touchleave if not natively available
-        if ( !$.MouseTracker.haveTouchEnter && touchCount > 0 ) {
-            updatePointersExit( tracker, event, gPoints );
+        // simulate touchleave on our tracked element
+        updatePointersExit( tracker, event, gPoints );
+
+        // simulate touchleave on our tracked element's tracked ancestor elements
+        for ( i = 0; i < MOUSETRACKERS.length; i++ ) {
+            if ( MOUSETRACKERS[ i ] !== tracker && MOUSETRACKERS[ i ].isTracking() && isParentChild( MOUSETRACKERS[ i ].element, tracker.element ) ) {
+                parentGPoints = [];
+                for ( j = 0; j < touchCount; j++ ) {
+                    parentGPoints.push( {
+                        id: event.changedTouches[ j ].identifier,
+                        type: 'touch',
+                        // isPrimary not set - let the updatePointers functions determine it
+                        currentPos: getMouseAbsolute( event.changedTouches[ j ] ),
+                        currentTime: time
+                    } );
+                }
+                updatePointersExit( MOUSETRACKERS[ i ], event, parentGPoints );
+            }
         }
 
         $.cancelEvent( event );
@@ -4618,6 +5164,28 @@ $.EventSource.prototype = /** @lends OpenSeadragon.EventSource.prototype */{
      * @inner
      */
     function onTouchMove( tracker, event ) {
+        handleTouchMove( tracker, event );
+    }
+
+
+    /**
+     * This handler is attached to the window object (on the capture phase) to emulate pointer capture.
+     * onTouchMove is still attached to the tracked element, so stop propagation to avoid processing twice.
+     *
+     * @private
+     * @inner
+     */
+    function onTouchMoveCaptured( tracker, event ) {
+        handleTouchMove( tracker, event );
+        $.stopEvent( event );
+    }
+
+
+    /**
+     * @private
+     * @inner
+     */
+    function handleTouchMove( tracker, event ) {
         var i,
             touchCount = event.changedTouches.length,
             gPoints = [];
@@ -4645,16 +5213,10 @@ $.EventSource.prototype = /** @lends OpenSeadragon.EventSource.prototype */{
     function onTouchCancel( tracker, event ) {
         var i,
             touchCount = event.changedTouches.length,
-            gPoints = [];
+            gPoints = [],
+            pointsList = tracker.getActivePointersListByType( 'touch' );
         
-        for ( i = 0; i < touchCount; i++ ) {
-            gPoints.push( {
-                id: event.changedTouches[ i ].identifier,
-                type: 'touch'
-            } );
-        }
-
-        updatePointersCancel( tracker, event, gPoints );
+        abortTouchContacts( tracker, event, pointsList );
     }
 
 
@@ -4687,7 +5249,7 @@ $.EventSource.prototype = /** @lends OpenSeadragon.EventSource.prototype */{
     function onPointerOver( tracker, event ) {
         var gPoint;
 
-        if ( this === event.relatedTarget || isParentChild( event.currentTarget, event.relatedTarget ) ) {
+        if ( event.currentTarget === event.relatedTarget || isParentChild( event.currentTarget, event.relatedTarget ) ) {
             return;
         }
 
@@ -4710,7 +5272,7 @@ $.EventSource.prototype = /** @lends OpenSeadragon.EventSource.prototype */{
     function onPointerOut( tracker, event ) {
         var gPoint;
 
-        if ( this === event.relatedTarget || isParentChild( event.currentTarget, event.relatedTarget ) ) {
+        if ( event.currentTarget === event.relatedTarget || isParentChild( event.currentTarget, event.relatedTarget ) ) {
             return;
         }
 
@@ -4725,32 +5287,6 @@ $.EventSource.prototype = /** @lends OpenSeadragon.EventSource.prototype */{
         updatePointersExit( tracker, event, [ gPoint ] );
     }
 
-    /**
-     * This handler is used to handle the case where the pointer is dragged out of the window, it should cause the drag to be properly released.
-     *
-     * @private
-     * @inner
-     */
-    function onPointerOutDocument( tracker, event ) {
-        event = $.getEvent( event );
-
-        var html = document.getElementsByTagName("html")[0];
-        if ((event.relatedTarget!==html && event.relatedTarget!==null) || event.currentTarget !== document.body) {
-            return; // not a mouseout of the iframe
-        }
-        
-        var gPoint = {
-            id: event.pointerId,
-            type: getPointerType( event ),
-            isPrimary: event.isPrimary,
-            currentPos: getMouseAbsolute( event ),
-            currentTime: $.now()
-        };
-
-        if ( updatePointersUp( tracker, event, [ gPoint ], 0 ) ) {
-            releasePointer( tracker, false );
-        }
-    }
 
     /**
      * @private
@@ -4768,8 +5304,8 @@ $.EventSource.prototype = /** @lends OpenSeadragon.EventSource.prototype */{
         };
 
         if ( updatePointersDown( tracker, event, [ gPoint ], event.button ) ) {
-            capturePointer( tracker, false );
             $.stopEvent( event );
+            capturePointer( tracker, gPoint.type );
         }
 
         if ( tracker.clickHandler || tracker.dblClickHandler || tracker.pressHandler || tracker.dragHandler || tracker.dragEndHandler || tracker.pinchHandler ) {
@@ -4819,8 +5355,7 @@ $.EventSource.prototype = /** @lends OpenSeadragon.EventSource.prototype */{
         };
 
         if ( updatePointersUp( tracker, event, [ gPoint ], event.button ) ) {
-            releasePointer( tracker, false );
-            //$.stopEvent( event );
+            releasePointer( tracker, gPoint.type );
         }
     }
 
@@ -4902,7 +5437,7 @@ $.EventSource.prototype = /** @lends OpenSeadragon.EventSource.prototype */{
      */
     function startTrackingPointer( pointsList, gPoint ) {
 
-        // If isPrimary is not known for the pointer then set it according to our rules: 
+        // If isPrimary is not known for the pointer then set it according to our rules:
         //    true if the first pointer in the gesture, otherwise false
         if ( !gPoint.hasOwnProperty( 'isPrimary' ) ) {
             if ( pointsList.getLength() === 0 ) {
@@ -5005,6 +5540,7 @@ $.EventSource.prototype = /** @lends OpenSeadragon.EventSource.prototype */{
                         pointerType:          curGPoint.type,
                         position:             getPointRelativeToAbsolute( curGPoint.currentPos, tracker.element ),
                         buttons:              pointsList.buttons,
+                        pointers:             tracker.getActivePointerCount(),
                         insideElementPressed: curGPoint.insideElementPressed,
                         buttonDownAny:        pointsList.buttons !== 0,
                         isTouchEvent:         curGPoint.type === 'touch',
@@ -5068,6 +5604,7 @@ $.EventSource.prototype = /** @lends OpenSeadragon.EventSource.prototype */{
                         pointerType:          curGPoint.type,
                         position:             getPointRelativeToAbsolute( curGPoint.currentPos, tracker.element ),
                         buttons:              pointsList.buttons,
+                        pointers:             tracker.getActivePointerCount(),
                         insideElementPressed: updateGPoint ? updateGPoint.insideElementPressed : false,
                         buttonDownAny:        pointsList.buttons !== 0,
                         isTouchEvent:         curGPoint.type === 'touch',
@@ -5096,8 +5633,8 @@ $.EventSource.prototype = /** @lends OpenSeadragon.EventSource.prototype */{
      * @param {Array.<OpenSeadragon.MouseTracker.GesturePoint>} gPoints
      *      Gesture points associated with the event.
      * @param {Number} buttonChanged
-     *      The button involved in the event: -1: none, 0: primary, 1: aux, 2: secondary, 3: X1, 4: X2, 5: pen eraser.
-     *      Note on chorded button presses (a button pressed when another button is already pressed): In the W3C Pointer Events model, 
+     *      The button involved in the event: -1: none, 0: primary/left, 1: aux/middle, 2: secondary/right, 3: X1/back, 4: X2/forward, 5: pen eraser.
+     *      Note on chorded button presses (a button pressed when another button is already pressed): In the W3C Pointer Events model,
      *      only one pointerdown/pointerup event combo is fired. Chorded button state changes instead fire pointermove events.
      *
      * @returns {Boolean} True if pointers should be captured to the tracked element, otherwise false.
@@ -5114,30 +5651,71 @@ $.EventSource.prototype = /** @lends OpenSeadragon.EventSource.prototype */{
         if ( typeof event.buttons !== 'undefined' ) {
             pointsList.buttons = event.buttons;
         } else {
-            if ( buttonChanged === 0 ) {
-                // Primary
-                pointsList.buttons |= 1;
-            } else if ( buttonChanged === 1 ) {
-                // Aux
-                pointsList.buttons |= 4;
-            } else if ( buttonChanged === 2 ) {
-                // Secondary
-                pointsList.buttons |= 2;
-            } else if ( buttonChanged === 3 ) {
-                // X1 (Back)
-                pointsList.buttons |= 8;
-            } else if ( buttonChanged === 4 ) {
-                // X2 (Forward)
-                pointsList.buttons |= 16;
-            } else if ( buttonChanged === 5 ) {
-                // Pen Eraser
-                pointsList.buttons |= 32;
+            if ( $.Browser.vendor === $.BROWSERS.IE && $.Browser.version < 9 ) {
+                if ( buttonChanged === 0 ) {
+                    // Primary
+                    pointsList.buttons += 1;
+                } else if ( buttonChanged === 1 ) {
+                    // Aux
+                    pointsList.buttons += 4;
+                } else if ( buttonChanged === 2 ) {
+                    // Secondary
+                    pointsList.buttons += 2;
+                } else if ( buttonChanged === 3 ) {
+                    // X1 (Back)
+                    pointsList.buttons += 8;
+                } else if ( buttonChanged === 4 ) {
+                    // X2 (Forward)
+                    pointsList.buttons += 16;
+                } else if ( buttonChanged === 5 ) {
+                    // Pen Eraser
+                    pointsList.buttons += 32;
+                }
+            } else {
+                if ( buttonChanged === 0 ) {
+                    // Primary
+                    pointsList.buttons |= 1;
+                } else if ( buttonChanged === 1 ) {
+                    // Aux
+                    pointsList.buttons |= 4;
+                } else if ( buttonChanged === 2 ) {
+                    // Secondary
+                    pointsList.buttons |= 2;
+                } else if ( buttonChanged === 3 ) {
+                    // X1 (Back)
+                    pointsList.buttons |= 8;
+                } else if ( buttonChanged === 4 ) {
+                    // X2 (Forward)
+                    pointsList.buttons |= 16;
+                } else if ( buttonChanged === 5 ) {
+                    // Pen Eraser
+                    pointsList.buttons |= 32;
+                }
             }
         }
 
         // Only capture and track primary button, pen, and touch contacts
-        //if ( buttonChanged !== 0 ) {
-        if ( buttonChanged !== 0 && buttonChanged !== 1 ) { //TODO Remove this IE8 compatibility and use the commented line above
+        if ( buttonChanged !== 0 ) {
+            // Aux Press
+            if ( tracker.nonPrimaryPressHandler ) {
+                propagate = tracker.nonPrimaryPressHandler(
+                    {
+                        eventSource:          tracker,
+                        pointerType:          gPoints[ 0 ].type,
+                        position:             getPointRelativeToAbsolute( gPoints[ 0 ].currentPos, tracker.element ),
+                        button:               buttonChanged,
+                        buttons:              pointsList.buttons,
+                        isTouchEvent:         gPoints[ 0 ].type === 'touch',
+                        originalEvent:        event,
+                        preventDefaultAction: false,
+                        userData:             tracker.userData
+                    }
+                );
+                if ( propagate === false ) {
+                    $.cancelEvent( event );
+                }
+            }
+
             return false;
         }
 
@@ -5217,8 +5795,8 @@ $.EventSource.prototype = /** @lends OpenSeadragon.EventSource.prototype */{
      * @param {Array.<OpenSeadragon.MouseTracker.GesturePoint>} gPoints
      *      Gesture points associated with the event.
      * @param {Number} buttonChanged
-     *      The button involved in the event: -1: none, 0: primary, 1: aux, 2: secondary, 3: X1, 4: X2, 5: pen eraser.
-     *      Note on chorded button presses (a button pressed when another button is already pressed): In the W3C Pointer Events model, 
+     *      The button involved in the event: -1: none, 0: primary/left, 1: aux/middle, 2: secondary/right, 3: X1/back, 4: X2/forward, 5: pen eraser.
+     *      Note on chorded button presses (a button pressed when another button is already pressed): In the W3C Pointer Events model,
      *      only one pointerdown/pointerup event combo is fired. Chorded button state changes instead fire pointermove events.
      *
      * @returns {Boolean} True if pointer capture should be released from the tracked element, otherwise false.
@@ -5241,30 +5819,71 @@ $.EventSource.prototype = /** @lends OpenSeadragon.EventSource.prototype */{
         if ( typeof event.buttons !== 'undefined' ) {
             pointsList.buttons = event.buttons;
         } else {
-            if ( buttonChanged === 0 ) {
-                // Primary
-                pointsList.buttons ^= ~1;
-            } else if ( buttonChanged === 1 ) {
-                // Aux
-                pointsList.buttons ^= ~4;
-            } else if ( buttonChanged === 2 ) {
-                // Secondary
-                pointsList.buttons ^= ~2;
-            } else if ( buttonChanged === 3 ) {
-                // X1 (Back)
-                pointsList.buttons ^= ~8;
-            } else if ( buttonChanged === 4 ) {
-                // X2 (Forward)
-                pointsList.buttons ^= ~16;
-            } else if ( buttonChanged === 5 ) {
-                // Pen Eraser
-                pointsList.buttons ^= ~32;
+            if ( $.Browser.vendor === $.BROWSERS.IE && $.Browser.version < 9 ) {
+                if ( buttonChanged === 0 ) {
+                    // Primary
+                    pointsList.buttons -= 1;
+                } else if ( buttonChanged === 1 ) {
+                    // Aux
+                    pointsList.buttons -= 4;
+                } else if ( buttonChanged === 2 ) {
+                    // Secondary
+                    pointsList.buttons -= 2;
+                } else if ( buttonChanged === 3 ) {
+                    // X1 (Back)
+                    pointsList.buttons -= 8;
+                } else if ( buttonChanged === 4 ) {
+                    // X2 (Forward)
+                    pointsList.buttons -= 16;
+                } else if ( buttonChanged === 5 ) {
+                    // Pen Eraser
+                    pointsList.buttons -= 32;
+                }
+            } else {
+                if ( buttonChanged === 0 ) {
+                    // Primary
+                    pointsList.buttons ^= ~1;
+                } else if ( buttonChanged === 1 ) {
+                    // Aux
+                    pointsList.buttons ^= ~4;
+                } else if ( buttonChanged === 2 ) {
+                    // Secondary
+                    pointsList.buttons ^= ~2;
+                } else if ( buttonChanged === 3 ) {
+                    // X1 (Back)
+                    pointsList.buttons ^= ~8;
+                } else if ( buttonChanged === 4 ) {
+                    // X2 (Forward)
+                    pointsList.buttons ^= ~16;
+                } else if ( buttonChanged === 5 ) {
+                    // Pen Eraser
+                    pointsList.buttons ^= ~32;
+                }
             }
         }
 
         // Only capture and track primary button, pen, and touch contacts
-        //if ( buttonChanged !== 0 ) {
-        if ( buttonChanged !== 0 && buttonChanged !== 1 ) { //TODO Remove this IE8 compatibility and use the commented line above
+        if ( buttonChanged !== 0 ) {
+            // Aux Release
+            if ( tracker.nonPrimaryReleaseHandler ) {
+                propagate = tracker.nonPrimaryReleaseHandler(
+                    {
+                        eventSource:           tracker,
+                        pointerType:           gPoints[ 0 ].type,
+                        position:              getPointRelativeToAbsolute(  gPoints[ 0 ].currentPos, tracker.element ),
+                        button:                buttonChanged,
+                        buttons:               pointsList.buttons,
+                        isTouchEvent:          gPoints[ 0 ].type === 'touch',
+                        originalEvent:         event,
+                        preventDefaultAction:  false,
+                        userData:              tracker.userData
+                    }
+                );
+                if ( propagate === false ) {
+                    $.cancelEvent( event );
+                }
+            }
+
             return false;
         }
 
@@ -6123,6 +6742,7 @@ $.Control.prototype = /** @lends OpenSeadragon.Control.prototype */{
 
 // dictionary from hash to private properties
 var THIS = {};
+var nextHash = 1;
 
 /**
  *
@@ -6176,7 +6796,7 @@ $.Viewer = function( options ) {
 
         //internal state and dom identifiers
         id:             options.id,
-        hash:           options.hash || options.id,
+        hash:           options.hash || nextHash++,
 
         //dom nodes
         /**
@@ -6192,14 +6812,6 @@ $.Viewer = function( options ) {
          * @memberof OpenSeadragon.Viewer#
          */
         container:      null,
-        /**
-         * A &lt;textarea&gt; element, the element where keyboard events are handled.<br><br>
-         * Child element of {@link OpenSeadragon.Viewer#container},
-         * positioned below {@link OpenSeadragon.Viewer#canvas}.
-         * @member {Element} keyboardCommandArea
-         * @memberof OpenSeadragon.Viewer#
-         */
-        keyboardCommandArea: null,
         /**
          * A &lt;div&gt; element, the element where user-input events are handled for panning and zooming.<br><br>
          * Child element of {@link OpenSeadragon.Viewer#container},
@@ -6297,6 +6909,8 @@ $.Viewer = function( options ) {
     this._loadQueue = [];
     this.currentOverlays = [];
 
+    this._lastScrollTime = $.now(); // variable used to help normalize the scroll event speed of different devices
+
     //Inherit some behaviors and properties
     $.EventSource.call( this );
 
@@ -6315,7 +6929,6 @@ $.Viewer = function( options ) {
 
     this.element              = this.element || document.getElementById( this.id );
     this.canvas               = $.makeNeutralElement( "div" );
-    this.keyboardCommandArea  = $.makeNeutralElement( "textarea" );
 
     this.canvas.className = "openseadragon-canvas";
     (function( style ){
@@ -6327,6 +6940,7 @@ $.Viewer = function( options ) {
         style.left     = "0px";
     }(this.canvas.style));
     $.setElementTouchActionNone( this.canvas );
+    this.canvas.tabIndex = options.tabIndex || 0;
 
     //the container is created through applying the ControlDock constructor above
     this.container.className = "openseadragon-container";
@@ -6340,19 +6954,7 @@ $.Viewer = function( options ) {
         style.textAlign = "left";  // needed to protect against
     }( this.container.style ));
 
-    this.keyboardCommandArea.className = "keyboard-command-area";
-    (function( style ){
-        style.width    = "100%";
-        style.height   = "100%";
-        style.overflow = "hidden";
-        style.position = "absolute";
-        style.top      = "0px";
-        style.left     = "0px";
-        style.resize   = "none";
-    }(  this.keyboardCommandArea.style ));
-
     this.container.insertBefore( this.canvas, this.container.firstChild );
-    this.container.insertBefore( this.keyboardCommandArea, this.container.firstChild );
     this.element.appendChild( this.container );
 
     //Used for toggling between fullscreen and default container size
@@ -6363,96 +6965,39 @@ $.Viewer = function( options ) {
     this.bodyOverflow   = document.body.style.overflow;
     this.docOverflow    = document.documentElement.style.overflow;
 
-    this.keyboardCommandArea.innerTracker = new $.MouseTracker({
-            _this : this,
-            element:            this.keyboardCommandArea,
-            focusHandler:       function( event ){
-                if ( !event.preventDefaultAction ) {
-                    var point    = $.getElementPosition( this.element );
-                    window.scrollTo( 0, point.y );
-                }
-            },
-
-            keyHandler:         function( event ){
-                if ( !event.preventDefaultAction ) {
-                    switch( event.keyCode ){
-                        case 61://=|+
-                            _this.viewport.zoomBy(1.1);
-                            _this.viewport.applyConstraints();
-                            return false;
-                        case 45://-|_
-                            _this.viewport.zoomBy(0.9);
-                            _this.viewport.applyConstraints();
-                            return false;
-                        case 48://0|)
-                            _this.viewport.goHome();
-                            _this.viewport.applyConstraints();
-                            return false;
-                        case 119://w
-                        case 87://W
-                        case 38://up arrow
-                            if ( event.shift ) {
-                                _this.viewport.zoomBy(1.1);
-                            } else {
-                                _this.viewport.panBy(new $.Point(0, -0.05));
-                            }
-                            _this.viewport.applyConstraints();
-                            return false;
-                        case 115://s
-                        case 83://S
-                        case 40://down arrow
-                            if ( event.shift ) {
-                                _this.viewport.zoomBy(0.9);
-                            } else {
-                                _this.viewport.panBy(new $.Point(0, 0.05));
-                            }
-                            _this.viewport.applyConstraints();
-                            return false;
-                        case 97://a
-                        case 37://left arrow
-                            _this.viewport.panBy(new $.Point(-0.05, 0));
-                            _this.viewport.applyConstraints();
-                            return false;
-                        case 100://d
-                        case 39://right arrow
-                            _this.viewport.panBy(new $.Point(0.05, 0));
-                            _this.viewport.applyConstraints();
-                            return false;
-                        default:
-                            //console.log( 'navigator keycode %s', event.keyCode );
-                            return true;
-                    }
-                }
-            }
-        }).setTracking( true ); // default state
-
-
     this.innerTracker = new $.MouseTracker({
-        element:               this.canvas,
-        clickTimeThreshold:    this.clickTimeThreshold,
-        clickDistThreshold:    this.clickDistThreshold,
-        dblClickTimeThreshold: this.dblClickTimeThreshold,
-        dblClickDistThreshold: this.dblClickDistThreshold,
-        clickHandler:          $.delegate( this, onCanvasClick ),
-        dblClickHandler:       $.delegate( this, onCanvasDblClick ),
-        dragHandler:           $.delegate( this, onCanvasDrag ),
-        dragEndHandler:        $.delegate( this, onCanvasDragEnd ),
-        releaseHandler:        $.delegate( this, onCanvasRelease ),
-        scrollHandler:         $.delegate( this, onCanvasScroll ),
-        pinchHandler:          $.delegate( this, onCanvasPinch )
-    }).setTracking( this.mouseNavEnabled ? true : false ); // default state
+        element:                  this.canvas,
+        startDisabled:            this.mouseNavEnabled ? false : true,
+        clickTimeThreshold:       this.clickTimeThreshold,
+        clickDistThreshold:       this.clickDistThreshold,
+        dblClickTimeThreshold:    this.dblClickTimeThreshold,
+        dblClickDistThreshold:    this.dblClickDistThreshold,
+        keyDownHandler:           $.delegate( this, onCanvasKeyDown ),
+        keyHandler:               $.delegate( this, onCanvasKeyPress ),
+        clickHandler:             $.delegate( this, onCanvasClick ),
+        dblClickHandler:          $.delegate( this, onCanvasDblClick ),
+        dragHandler:              $.delegate( this, onCanvasDrag ),
+        dragEndHandler:           $.delegate( this, onCanvasDragEnd ),
+        enterHandler:             $.delegate( this, onCanvasEnter ),
+        exitHandler:              $.delegate( this, onCanvasExit ),
+        pressHandler:             $.delegate( this, onCanvasPress ),
+        releaseHandler:           $.delegate( this, onCanvasRelease ),
+        nonPrimaryPressHandler:   $.delegate( this, onCanvasNonPrimaryPress ),
+        nonPrimaryReleaseHandler: $.delegate( this, onCanvasNonPrimaryRelease ),
+        scrollHandler:            $.delegate( this, onCanvasScroll ),
+        pinchHandler:             $.delegate( this, onCanvasPinch )
+    });
 
     this.outerTracker = new $.MouseTracker({
         element:               this.container,
+        startDisabled:         this.mouseNavEnabled ? false : true,
         clickTimeThreshold:    this.clickTimeThreshold,
         clickDistThreshold:    this.clickDistThreshold,
         dblClickTimeThreshold: this.dblClickTimeThreshold,
         dblClickDistThreshold: this.dblClickDistThreshold,
         enterHandler:          $.delegate( this, onContainerEnter ),
-        exitHandler:           $.delegate( this, onContainerExit ),
-        pressHandler:          $.delegate( this, onContainerPress ),
-        releaseHandler:        $.delegate( this, onContainerRelease )
-    }).setTracking( this.mouseNavEnabled ? true : false ); // always tracking
+        exitHandler:           $.delegate( this, onContainerExit )
+    });
 
     if( this.toolbar ){
         this.toolbar = new $.ControlDock({ element: this.toolbar });
@@ -6523,7 +7068,9 @@ $.Viewer = function( options ) {
     this.viewport.setHomeBounds(this.world.getHomeBounds(), this.world.getContentFactor());
 
     // Create the image loader
-    this.imageLoader = new $.ImageLoader();
+    this.imageLoader = new $.ImageLoader({
+        jobLimit: this.imageLoaderLimit
+    });
 
     // Create the tile cache
     this.tileCache = new $.TileCache({
@@ -6535,7 +7082,6 @@ $.Viewer = function( options ) {
         viewer:             this,
         viewport:           this.viewport,
         element:            this.canvas,
-        opacity:            this.opacity,
         debugGridColor:     this.debugGridColor
     });
 
@@ -6570,10 +7116,10 @@ $.Viewer = function( options ) {
             width:             this.navigatorWidth,
             height:            this.navigatorHeight,
             autoResize:        this.navigatorAutoResize,
-            tileHost:          this.tileHost,
             prefixUrl:         this.prefixUrl,
             viewer:            this,
-            navigatorRotate:   this.navigatorRotate
+            navigatorRotate:   this.navigatorRotate,
+            crossOriginPolicy: this.crossOriginPolicy
         });
     }
 
@@ -6583,7 +7129,7 @@ $.Viewer = function( options ) {
     }
 
     // Open initial tilesources
-    if ( this.tileSources && this.tileSources.length) {
+    if (this.tileSources) {
         this.open( this.tileSources );
     }
 
@@ -6666,7 +7212,6 @@ $.extend( $.Viewer.prototype, $.EventSource.prototype, $.ControlDock.prototype, 
                         height:      this.referenceStripHeight,
                         width:       this.referenceStripWidth,
                         tileSources: this.tileSources,
-                        tileHost:    this.tileHost,
                         prefixUrl:   this.prefixUrl,
                         viewer:      this
                     });
@@ -6684,6 +7229,8 @@ $.extend( $.Viewer.prototype, $.EventSource.prototype, $.ControlDock.prototype, 
         if (!tileSources.length) {
             return;
         }
+
+        this._opening = true;
 
         var expected = tileSources.length;
         var successes = 0;
@@ -6706,11 +7253,14 @@ $.extend( $.Viewer.prototype, $.EventSource.prototype, $.ControlDock.prototype, 
                     }
 
                     // Global overlays
-                    for ( var i = 0; i < _this.overlays.length; i++ ) {
-                        _this.currentOverlays[ i ] = getOverlayObject( _this, _this.overlays[ i ] );
+                    if( _this.overlays && !_this.preserveOverlays ){
+                        for ( var i = 0; i < _this.overlays.length; i++ ) {
+                            _this.currentOverlays[ i ] = getOverlayObject( _this, _this.overlays[ i ] );
+                        }
                     }
 
                     _this._drawOverlays();
+                    _this._opening = false;
 
                     /**
                      * Raised when the viewer has opened and loaded one or more TileSources.
@@ -6725,6 +7275,8 @@ $.extend( $.Viewer.prototype, $.EventSource.prototype, $.ControlDock.prototype, 
                     // TODO: what if there are multiple sources?
                     _this.raiseEvent( 'open', { source: source } );
                 } else {
+                    _this._opening = false;
+
                     /**
                      * Raised when an error occurs loading a TileSource.
                      *
@@ -6761,6 +7313,14 @@ $.extend( $.Viewer.prototype, $.EventSource.prototype, $.ControlDock.prototype, 
             options.success = function(event) {
                 successes++;
 
+                // TODO: now that options has other things besides tileSource, the overlays
+                // should probably be at the options level, not the tileSource level.
+                if (options.tileSource.overlays) {
+                    for (var i = 0; i < options.tileSource.overlays.length; i++) {
+                        _this.addOverlay(options.tileSource.overlays[i]);
+                    }
+                }
+
                 if (originalSuccess) {
                     originalSuccess(event);
                 }
@@ -6784,14 +7344,6 @@ $.extend( $.Viewer.prototype, $.EventSource.prototype, $.ControlDock.prototype, 
             };
 
             _this.addTiledImage(options);
-
-            // TODO: now that options has other things besides tileSource, the overlays
-            // should probably be at the options level, not the tileSource level.
-            if (options.tileSource.overlays) {
-                for (var i = 0; i < options.tileSource.overlays.length; i++) {
-                    _this.addOverlay(options.tileSource.overlays[i]);
-                }
-            }
         };
 
         // TileSources
@@ -6814,15 +7366,20 @@ $.extend( $.Viewer.prototype, $.EventSource.prototype, $.ControlDock.prototype, 
             return this;
         }
 
+        this._opening = false;
+
         if ( this.navigator ) {
             this.navigator.close();
         }
 
-        this.clearOverlays();
-        this.overlaysContainer.innerHTML = "";
+        if( ! this.preserveOverlays) {
+            this.clearOverlays();
+            this.overlaysContainer.innerHTML = "";
+        }
 
         THIS[ this.hash ].animating = false;
         this.world.removeAll();
+        this.imageLoader.clear();
 
         /**
          * Raised when the viewer is closed (see {@link OpenSeadragon.Viewer#close}).
@@ -6861,6 +7418,9 @@ $.extend( $.Viewer.prototype, $.EventSource.prototype, $.ControlDock.prototype, 
 
         this.close();
 
+        this.clearOverlays();
+        this.overlaysContainer.innerHTML = "";
+
         //TODO: implement this...
         //this.unbindSequenceControls()
         //this.unbindStandardControls()
@@ -6891,9 +7451,6 @@ $.extend( $.Viewer.prototype, $.EventSource.prototype, $.ControlDock.prototype, 
         }
 
         // destroy the mouse trackers
-        if (this.keyboardCommandArea){
-            this.keyboardCommandArea.innerTracker.destroy();
-        }
         if (this.innerTracker){
             this.innerTracker.destroy();
         }
@@ -6906,7 +7463,6 @@ $.extend( $.Viewer.prototype, $.EventSource.prototype, $.ControlDock.prototype, 
 
         // clear all our references to dom objects
         this.canvas = null;
-        this.keyboardCommandArea = null;
         this.container = null;
 
         // clear our reference to the main element - they will need to pass it in again, creating a new viewer
@@ -6985,7 +7541,6 @@ $.extend( $.Viewer.prototype, $.EventSource.prototype, $.ControlDock.prototype, 
         this.raiseEvent( 'controls-enabled', { enabled: enabled } );
         return this;
     },
-
 
     /**
      * @function
@@ -7225,6 +7780,9 @@ $.extend( $.Viewer.prototype, $.EventSource.prototype, $.ControlDock.prototype, 
         };
         /**
          * Raised when the viewer is about to change to/from full-screen mode (see {@link OpenSeadragon.Viewer#setFullScreen}).
+         * Note: the pre-full-screen event is not raised when the user is exiting
+         * full-screen mode by pressing the Esc key. In that case, consider using
+         * the full-screen, pre-full-page or full-page events.
          *
          * @event pre-full-screen
          * @memberof OpenSeadragon.Viewer
@@ -7343,10 +7901,18 @@ $.extend( $.Viewer.prototype, $.EventSource.prototype, $.ControlDock.prototype, 
      *      named 'getTileUrl', it is treated as a custom TileSource.
      * @param {Number} [options.index] The index of the item. Added on top of
      * all other items if not specified.
+     * @param {Boolean} [options.replace=false] If true, the item at options.index will be
+     * removed and the new item is added in its place. options.tileSource will be
+     * interpreted and fetched if necessary before the old item is removed to avoid leaving
+     * a gap in the world.
      * @param {Number} [options.x=0] The X position for the image in viewport coordinates.
      * @param {Number} [options.y=0] The Y position for the image in viewport coordinates.
      * @param {Number} [options.width=1] The width for the image in viewport coordinates.
      * @param {Number} [options.height] The height for the image in viewport coordinates.
+     * @param {OpenSeadragon.Rect} [options.clip] - An area, in image pixels, to clip to
+     * (portions of the image outside of this area will not be visible). Only works on
+     * browsers that support the HTML5 canvas.
+     * @param {Number} [options.opacity] Opacity the tiled image should be drawn at by default.
      * @param {Function} [options.success] A function that gets called when the image is
      * successfully added. It's passed the event object which contains a single property:
      * "item", the resulting TiledImage.
@@ -7355,27 +7921,45 @@ $.extend( $.Viewer.prototype, $.EventSource.prototype, $.ControlDock.prototype, 
      * and "source" properties.
      * @param {Boolean} [options.collectionImmediately=false] If collectionMode is on,
      * specifies whether to snap to the new arrangement immediately or to animate to it.
+     * @param {String|CanvasGradient|CanvasPattern|Function} [options.placeholderFillStyle] - See {@link OpenSeadragon.Options}.
      * @fires OpenSeadragon.World.event:add-item
      * @fires OpenSeadragon.Viewer.event:add-item-failed
      */
     addTiledImage: function( options ) {
         $.console.assert(options, "[Viewer.addTiledImage] options is required");
         $.console.assert(options.tileSource, "[Viewer.addTiledImage] options.tileSource is required");
+        $.console.assert(!options.replace || (options.index > -1 && options.index < this.world.getItemCount()),
+            "[Viewer.addTiledImage] if options.replace is used, options.index must be a valid index in Viewer.world");
 
         var _this = this;
 
+        if (options.replace) {
+            options.replaceItem = _this.world.getItemAt(options.index);
+        }
+
         this._hideMessage();
+
+        if (options.placeholderFillStyle === undefined) {
+            options.placeholderFillStyle = this.placeholderFillStyle;
+        }
+        if (options.opacity === undefined) {
+            options.opacity = this.opacity;
+        }
 
         var myQueueItem = {
             options: options
         };
 
         function raiseAddItemFailed( event ) {
-            for (var i = 0; i < _this._loadQueue; i++) {
+            for (var i = 0; i < _this._loadQueue.length; i++) {
                 if (_this._loadQueue[i] === myQueueItem) {
                     _this._loadQueue.splice(i, 1);
                     break;
                 }
+            }
+
+            if (_this._loadQueue.length === 0) {
+                refreshWorld(myQueueItem);
             }
 
              /**
@@ -7396,18 +7980,34 @@ $.extend( $.Viewer.prototype, $.EventSource.prototype, $.ControlDock.prototype, 
             }
         }
 
+        function refreshWorld(theItem) {
+            if (_this.collectionMode) {
+                _this.world.arrange({
+                    immediately: theItem.options.collectionImmediately,
+                    rows: _this.collectionRows,
+                    columns: _this.collectionColumns,
+                    layout: _this.collectionLayout,
+                    tileSize: _this.collectionTileSize,
+                    tileMargin: _this.collectionTileMargin
+                });
+                _this.world.setAutoRefigureSizes(true);
+            }
+        }
+
+        if ($.isArray(options.tileSource)) {
+            setTimeout(function() {
+                raiseAddItemFailed({
+                    message: "[Viewer.addTiledImage] Sequences can not be added; add them one at a time instead.",
+                    source: options.tileSource,
+                    options: options
+                });
+            });
+            return;
+        }
+
         this._loadQueue.push(myQueueItem);
 
         getTileSourceImplementation( this, options.tileSource, function( tileSource ) {
-
-            if ( tileSource instanceof Array ) {
-                raiseAddItemFailed({
-                    message: "[Viewer.addTiledImage] Sequences can not be added; add them one at a time instead.",
-                    source: tileSource,
-                    options: options
-                });
-                return;
-            }
 
             myQueueItem.tileSource = tileSource;
 
@@ -7421,6 +8021,14 @@ $.extend( $.Viewer.prototype, $.EventSource.prototype, $.ControlDock.prototype, 
 
                 _this._loadQueue.splice(0, 1);
 
+                if (queueItem.options.replace) {
+                    var newIndex = _this.world.getIndexOfItem(queueItem.options.replaceItem);
+                    if (newIndex != -1) {
+                        queueItem.options.index = newIndex;
+                    }
+                    _this.world.removeItem(queueItem.options.replaceItem);
+                }
+
                 tiledImage = new $.TiledImage({
                     viewer: _this,
                     source: queueItem.tileSource,
@@ -7432,6 +8040,9 @@ $.extend( $.Viewer.prototype, $.EventSource.prototype, $.ControlDock.prototype, 
                     y: queueItem.options.y,
                     width: queueItem.options.width,
                     height: queueItem.options.height,
+                    clip: queueItem.options.clip,
+                    placeholderFillStyle: queueItem.options.placeholderFillStyle,
+                    opacity: queueItem.options.opacity,
                     springStiffness: _this.springStiffness,
                     animationTime: _this.animationTime,
                     minZoomImageRatio: _this.minZoomImageRatio,
@@ -7441,21 +8052,20 @@ $.extend( $.Viewer.prototype, $.EventSource.prototype, $.ControlDock.prototype, 
                     blendTime: _this.blendTime,
                     alwaysBlend: _this.alwaysBlend,
                     minPixelRatio: _this.minPixelRatio,
+                    crossOriginPolicy: _this.crossOriginPolicy,
                     debugMode: _this.debugMode
                 });
 
+                if (_this.collectionMode) {
+                    _this.world.setAutoRefigureSizes(false);
+                }
                 _this.world.addItem( tiledImage, {
                     index: queueItem.options.index
                 });
 
-                if (_this.collectionMode) {
-                    _this.world.arrange({
-                        immediately: queueItem.options.collectionImmediately,
-                        rows: _this.collectionRows,
-                        layout: _this.collectionLayout,
-                        tileSize: _this.collectionTileSize,
-                        tileMargin: _this.collectionTileMargin
-                    });
+                if (_this._loadQueue.length === 0) {
+                    //this restores the autoRefigureSizes flag to true.
+                    refreshWorld(queueItem);
                 }
 
                 if (_this.world.getItemCount() === 1 && !_this.preserveViewport) {
@@ -7844,7 +8454,7 @@ $.extend( $.Viewer.prototype, $.EventSource.prototype, $.ControlDock.prototype, 
      * is closed which include when changing page.
      * @method
      * @param {Element|String|Object} element - A reference to an element or an id for
-     *      the element which will overlayed. Or an Object specifying the configuration for the overlay
+     *      the element which will be overlayed. Or an Object specifying the configuration for the overlay
      * @param {OpenSeadragon.Point|OpenSeadragon.Rect} location - The point or
      *      rectangle which will be overlayed.
      * @param {OpenSeadragon.OverlayPlacement} placement - The position of the
@@ -7904,6 +8514,8 @@ $.extend( $.Viewer.prototype, $.EventSource.prototype, $.ControlDock.prototype, 
      * Updates the overlay represented by the reference to the element or
      * element id moving it to the new location, relative to the new placement.
      * @method
+     * @param {Element|String} element - A reference to an element or an id for
+     *      the element which is overlayed.
      * @param {OpenSeadragon.Point|OpenSeadragon.Rect} location - The point or
      *      rectangle which will be overlayed.
      * @param {OpenSeadragon.OverlayPlacement} placement - The position of the
@@ -8095,6 +8707,13 @@ $.extend( $.Viewer.prototype, $.EventSource.prototype, $.ControlDock.prototype, 
         for ( i = 0; i < length; i++ ) {
             this.currentOverlays[ i ].drawHTML( this.overlaysContainer, this.viewport );
         }
+    },
+
+    /**
+     * Cancel the "in flight" images.
+     */
+    _cancelPendingImages: function() {
+        this._loadQueue = [];
     }
 });
 
@@ -8127,22 +8746,53 @@ function getTileSourceImplementation( viewer, tileSource, successCallback,
         if ( tileSource.match( /\s*<.*/ ) ) {
             tileSource = $.parseXml( tileSource );
         } else if ( tileSource.match( /\s*[\{\[].*/ ) ) {
-            /*jshint evil:true*/
-            tileSource = eval( '(' + tileSource + ')' );
+            tileSource = $.parseJSON(tileSource);
+        }
+    }
+
+    function waitUntilReady(tileSource, originalTileSource) {
+        if (tileSource.ready) {
+            successCallback(tileSource);
+        } else {
+            tileSource.addHandler('ready', function () {
+                successCallback(tileSource);
+            });
+            tileSource.addHandler('open-failed', function (event) {
+                failCallback({
+                    message: event.message,
+                    source: originalTileSource
+                });
+            });
         }
     }
 
     setTimeout( function() {
         if ( $.type( tileSource ) == 'string' ) {
             //If its still a string it means it must be a url at this point
-            tileSource = new $.TileSource( tileSource, function( event ) {
-                successCallback( event.tileSource );
+            tileSource = new $.TileSource({
+                url: tileSource,
+                crossOriginPolicy: viewer.crossOriginPolicy,
+                ajaxWithCredentials: viewer.ajaxWithCredentials,
+                useCanvas: viewer.useCanvas,
+                success: function( event ) {
+                    successCallback( event.tileSource );
+                }
             });
             tileSource.addHandler( 'open-failed', function( event ) {
                 failCallback( event );
             } );
 
-        } else if ( $.isPlainObject( tileSource ) || tileSource.nodeType ) {
+        } else if ($.isPlainObject(tileSource) || tileSource.nodeType) {
+            if (!tileSource.crossOriginPolicy && viewer.crossOriginPolicy) {
+                tileSource.crossOriginPolicy = viewer.crossOriginPolicy;
+            }
+            if (tileSource.ajaxWithCredentials === undefined) {
+                tileSource.ajaxWithCredentials = viewer.ajaxWithCredentials;
+            }
+            if (tileSource.useCanvas === undefined) {
+                tileSource.useCanvas = viewer.useCanvas;
+            }
+
             if ( $.isFunction( tileSource.getTileUrl ) ) {
                 //Custom tile source
                 var customTileSource = new $.TileSource( tileSource );
@@ -8159,14 +8809,13 @@ function getTileSourceImplementation( viewer, tileSource, successCallback,
                     return;
                 }
                 var options = $TileSource.prototype.configure.apply( _this, [ tileSource ] );
-                var readySource = new $TileSource( options );
-                successCallback( readySource );
+                waitUntilReady(new $TileSource(options), tileSource);
             }
         } else {
             //can assume it's already a tile source implementation
-            successCallback( tileSource );
+            waitUntilReady(tileSource, tileSource);
         }
-    }, 1 );
+    });
 }
 
 function getOverlayObject( viewer, overlay ) {
@@ -8338,8 +8987,102 @@ function onBlur(){
 
 }
 
+function onCanvasKeyDown( event ) {
+    if ( !event.preventDefaultAction && !event.ctrl && !event.alt && !event.meta ) {
+        switch( event.keyCode ){
+            case 38://up arrow
+                if ( event.shift ) {
+                    this.viewport.zoomBy(1.1);
+                } else {
+                    this.viewport.panBy(this.viewport.deltaPointsFromPixels(new $.Point(0, -40)));
+                }
+                this.viewport.applyConstraints();
+                return false;
+            case 40://down arrow
+                if ( event.shift ) {
+                    this.viewport.zoomBy(0.9);
+                } else {
+                    this.viewport.panBy(this.viewport.deltaPointsFromPixels(new $.Point(0, 40)));
+                }
+                this.viewport.applyConstraints();
+                return false;
+            case 37://left arrow
+                this.viewport.panBy(this.viewport.deltaPointsFromPixels(new $.Point(-40, 0)));
+                this.viewport.applyConstraints();
+                return false;
+            case 39://right arrow
+                this.viewport.panBy(this.viewport.deltaPointsFromPixels(new $.Point(40, 0)));
+                this.viewport.applyConstraints();
+                return false;
+            default:
+                //console.log( 'navigator keycode %s', event.keyCode );
+                return true;
+        }
+    } else {
+        return true;
+    }
+}
+
+function onCanvasKeyPress( event ) {
+    if ( !event.preventDefaultAction && !event.ctrl && !event.alt && !event.meta ) {
+        switch( event.keyCode ){
+            case 43://=|+
+            case 61://=|+
+                this.viewport.zoomBy(1.1);
+                this.viewport.applyConstraints();
+                return false;
+            case 45://-|_
+                this.viewport.zoomBy(0.9);
+                this.viewport.applyConstraints();
+                return false;
+            case 48://0|)
+                this.viewport.goHome();
+                this.viewport.applyConstraints();
+                return false;
+            case 119://w
+            case 87://W
+                if ( event.shift ) {
+                    this.viewport.zoomBy(1.1);
+                } else {
+                    this.viewport.panBy(this.viewport.deltaPointsFromPixels(new $.Point(0, -40)));
+                }
+                this.viewport.applyConstraints();
+                return false;
+            case 115://s
+            case 83://S
+                if ( event.shift ) {
+                    this.viewport.zoomBy(0.9);
+                } else {
+                    this.viewport.panBy(this.viewport.deltaPointsFromPixels(new $.Point(0, 40)));
+                }
+                this.viewport.applyConstraints();
+                return false;
+            case 97://a
+                this.viewport.panBy(this.viewport.deltaPointsFromPixels(new $.Point(-40, 0)));
+                this.viewport.applyConstraints();
+                return false;
+            case 100://d
+                this.viewport.panBy(this.viewport.deltaPointsFromPixels(new $.Point(40, 0)));
+                this.viewport.applyConstraints();
+                return false;
+            default:
+                //console.log( 'navigator keycode %s', event.keyCode );
+                return true;
+        }
+    } else {
+        return true;
+    }
+}
+
 function onCanvasClick( event ) {
     var gestureSettings;
+
+    var haveKeyboardFocus = document.activeElement == this.canvas;
+
+    // If we don't have keyboard focus, request it.
+    if ( !haveKeyboardFocus ) {
+        this.canvas.focus();
+    }
 
     if ( !event.preventDefaultAction && this.viewport && event.quick ) {
         gestureSettings = this.gestureSettingsByDeviceType( event.pointerType );
@@ -8496,15 +9239,102 @@ function onCanvasDragEnd( event ) {
     });
 }
 
+function onCanvasEnter( event ) {
+    /**
+     * Raised when a pointer enters the {@link OpenSeadragon.Viewer#canvas} element.
+     *
+     * @event canvas-enter
+     * @memberof OpenSeadragon.Viewer
+     * @type {object}
+     * @property {OpenSeadragon.Viewer} eventSource - A reference to the Viewer which raised this event.
+     * @property {OpenSeadragon.MouseTracker} tracker - A reference to the MouseTracker which originated this event.
+     * @property {String} pointerType - "mouse", "touch", "pen", etc.
+     * @property {OpenSeadragon.Point} position - The position of the event relative to the tracked element.
+     * @property {Number} buttons - Current buttons pressed. A combination of bit flags 0: none, 1: primary (or touch contact), 2: secondary, 4: aux (often middle), 8: X1 (often back), 16: X2 (often forward), 32: pen eraser.
+     * @property {Number} pointers - Number of pointers (all types) active in the tracked element.
+     * @property {Boolean} insideElementPressed - True if the left mouse button is currently being pressed and was initiated inside the tracked element, otherwise false.
+     * @property {Boolean} buttonDownAny - Was the button down anywhere in the screen during the event. <span style="color:red;">Deprecated. Use buttons instead.</span>
+     * @property {Object} originalEvent - The original DOM event.
+     * @property {?Object} userData - Arbitrary subscriber-defined object.
+     */
+    this.raiseEvent( 'canvas-enter', {
+        tracker: event.eventSource,
+        pointerType: event.pointerType,
+        position: event.position,
+        buttons: event.buttons,
+        pointers: event.pointers,
+        insideElementPressed: event.insideElementPressed,
+        buttonDownAny: event.buttonDownAny,
+        originalEvent: event.originalEvent
+    });
+}
+
+function onCanvasExit( event ) {
+    /**
+     * Raised when a pointer leaves the {@link OpenSeadragon.Viewer#canvas} element.
+     *
+     * @event canvas-exit
+     * @memberof OpenSeadragon.Viewer
+     * @type {object}
+     * @property {OpenSeadragon.Viewer} eventSource - A reference to the Viewer which raised this event.
+     * @property {OpenSeadragon.MouseTracker} tracker - A reference to the MouseTracker which originated this event.
+     * @property {String} pointerType - "mouse", "touch", "pen", etc.
+     * @property {OpenSeadragon.Point} position - The position of the event relative to the tracked element.
+     * @property {Number} buttons - Current buttons pressed. A combination of bit flags 0: none, 1: primary (or touch contact), 2: secondary, 4: aux (often middle), 8: X1 (often back), 16: X2 (often forward), 32: pen eraser.
+     * @property {Number} pointers - Number of pointers (all types) active in the tracked element.
+     * @property {Boolean} insideElementPressed - True if the left mouse button is currently being pressed and was initiated inside the tracked element, otherwise false.
+     * @property {Boolean} buttonDownAny - Was the button down anywhere in the screen during the event. <span style="color:red;">Deprecated. Use buttons instead.</span>
+     * @property {Object} originalEvent - The original DOM event.
+     * @property {?Object} userData - Arbitrary subscriber-defined object.
+     */
+    this.raiseEvent( 'canvas-exit', {
+        tracker: event.eventSource,
+        pointerType: event.pointerType,
+        position: event.position,
+        buttons: event.buttons,
+        pointers: event.pointers,
+        insideElementPressed: event.insideElementPressed,
+        buttonDownAny: event.buttonDownAny,
+        originalEvent: event.originalEvent
+    });
+}
+
+function onCanvasPress( event ) {
+    /**
+     * Raised when the primary mouse button is pressed or touch starts on the {@link OpenSeadragon.Viewer#canvas} element.
+     *
+     * @event canvas-press
+     * @memberof OpenSeadragon.Viewer
+     * @type {object}
+     * @property {OpenSeadragon.Viewer} eventSource - A reference to the Viewer which raised this event.
+     * @property {OpenSeadragon.MouseTracker} tracker - A reference to the MouseTracker which originated this event.
+     * @property {String} pointerType - "mouse", "touch", "pen", etc.
+     * @property {OpenSeadragon.Point} position - The position of the event relative to the tracked element.
+     * @property {Boolean} insideElementPressed - True if the left mouse button is currently being pressed and was initiated inside the tracked element, otherwise false.
+     * @property {Boolean} insideElementReleased - True if the cursor still inside the tracked element when the button was released.
+     * @property {Object} originalEvent - The original DOM event.
+     * @property {?Object} userData - Arbitrary subscriber-defined object.
+     */
+    this.raiseEvent( 'canvas-press', {
+        tracker: event.eventSource,
+        pointerType: event.pointerType,
+        position: event.position,
+        insideElementPressed: event.insideElementPressed,
+        insideElementReleased: event.insideElementReleased,
+        originalEvent: event.originalEvent
+    });
+}
+
 function onCanvasRelease( event ) {
     /**
-     * Raised when the mouse button is released or touch ends on the {@link OpenSeadragon.Viewer#canvas} element.
+     * Raised when the primary mouse button is released or touch ends on the {@link OpenSeadragon.Viewer#canvas} element.
      *
      * @event canvas-release
      * @memberof OpenSeadragon.Viewer
      * @type {object}
      * @property {OpenSeadragon.Viewer} eventSource - A reference to the Viewer which raised this event.
      * @property {OpenSeadragon.MouseTracker} tracker - A reference to the MouseTracker which originated this event.
+     * @property {String} pointerType - "mouse", "touch", "pen", etc.
      * @property {OpenSeadragon.Point} position - The position of the event relative to the tracked element.
      * @property {Boolean} insideElementPressed - True if the left mouse button is currently being pressed and was initiated inside the tracked element, otherwise false.
      * @property {Boolean} insideElementReleased - True if the cursor still inside the tracked element when the button was released.
@@ -8513,9 +9343,66 @@ function onCanvasRelease( event ) {
      */
     this.raiseEvent( 'canvas-release', {
         tracker: event.eventSource,
+        pointerType: event.pointerType,
         position: event.position,
         insideElementPressed: event.insideElementPressed,
         insideElementReleased: event.insideElementReleased,
+        originalEvent: event.originalEvent
+    });
+}
+
+function onCanvasNonPrimaryPress( event ) {
+    /**
+     * Raised when any non-primary pointer button is pressed on the {@link OpenSeadragon.Viewer#canvas} element.
+     *
+     * @event canvas-nonprimary-press
+     * @memberof OpenSeadragon.Viewer
+     * @type {object}
+     * @property {OpenSeadragon.Viewer} eventSource - A reference to the Viewer which raised this event.
+     * @property {OpenSeadragon.MouseTracker} tracker - A reference to the MouseTracker which originated this event.
+     * @property {OpenSeadragon.Point} position - The position of the event relative to the tracked element.
+     * @property {String} pointerType - "mouse", "touch", "pen", etc.
+     * @property {Number} button - Button which caused the event.
+     *      -1: none, 0: primary/left, 1: aux/middle, 2: secondary/right, 3: X1/back, 4: X2/forward, 5: pen eraser.
+     * @property {Number} buttons - Current buttons pressed.
+     *      Combination of bit flags 0: none, 1: primary (or touch contact), 2: secondary, 4: aux (often middle), 8: X1 (often back), 16: X2 (often forward), 32: pen eraser.
+     * @property {Object} originalEvent - The original DOM event.
+     * @property {?Object} userData - Arbitrary subscriber-defined object.
+     */
+    this.raiseEvent( 'canvas-nonprimary-press', {
+        tracker: event.eventSource,
+        position: event.position,
+        pointerType: event.pointerType,
+        button: event.button,
+        buttons: event.buttons,
+        originalEvent: event.originalEvent
+    });
+}
+
+function onCanvasNonPrimaryRelease( event ) {
+    /**
+     * Raised when any non-primary pointer button is released on the {@link OpenSeadragon.Viewer#canvas} element.
+     *
+     * @event canvas-nonprimary-release
+     * @memberof OpenSeadragon.Viewer
+     * @type {object}
+     * @property {OpenSeadragon.Viewer} eventSource - A reference to the Viewer which raised this event.
+     * @property {OpenSeadragon.MouseTracker} tracker - A reference to the MouseTracker which originated this event.
+     * @property {OpenSeadragon.Point} position - The position of the event relative to the tracked element.
+     * @property {String} pointerType - "mouse", "touch", "pen", etc.
+     * @property {Number} button - Button which caused the event.
+     *      -1: none, 0: primary/left, 1: aux/middle, 2: secondary/right, 3: X1/back, 4: X2/forward, 5: pen eraser.
+     * @property {Number} buttons - Current buttons pressed.
+     *      Combination of bit flags 0: none, 1: primary (or touch contact), 2: secondary, 4: aux (often middle), 8: X1 (often back), 16: X2 (often forward), 32: pen eraser.
+     * @property {Object} originalEvent - The original DOM event.
+     * @property {?Object} userData - Arbitrary subscriber-defined object.
+     */
+    this.raiseEvent( 'canvas-nonprimary-release', {
+        tracker: event.eventSource,
+        position: event.position,
+        pointerType: event.pointerType,
+        button: event.button,
+        buttons: event.buttons,
         originalEvent: event.originalEvent
     });
 }
@@ -8584,111 +9471,58 @@ function onCanvasPinch( event ) {
 
 function onCanvasScroll( event ) {
     var gestureSettings,
-        factor;
+        factor,
+        thisScrollTime,
+        deltaScrollTime;
 
-    if ( !event.preventDefaultAction && this.viewport ) {
-        gestureSettings = this.gestureSettingsByDeviceType( event.pointerType );
-        if ( gestureSettings.scrollToZoom ) {
-            factor = Math.pow( this.zoomPerScroll, event.scroll );
-            this.viewport.zoomBy(
-                factor,
-                this.viewport.pointFromPixel( event.position, true )
-            );
-            this.viewport.applyConstraints();
+    /* Certain scroll devices fire the scroll event way too fast so we are injecting a simple adjustment to keep things
+     * partially normalized. If we have already fired an event within the last 'minScrollDelta' milliseconds we skip
+     * this one and wait for the next event. */
+    thisScrollTime = $.now();
+    deltaScrollTime = thisScrollTime - this._lastScrollTime;
+    if (deltaScrollTime > this.minScrollDeltaTime) {
+        this._lastScrollTime = thisScrollTime;
+
+        if ( !event.preventDefaultAction && this.viewport ) {
+            gestureSettings = this.gestureSettingsByDeviceType( event.pointerType );
+            if ( gestureSettings.scrollToZoom ) {
+                factor = Math.pow( this.zoomPerScroll, event.scroll );
+                this.viewport.zoomBy(
+                    factor,
+                    this.viewport.pointFromPixel( event.position, true )
+                );
+                this.viewport.applyConstraints();
+            }
+        }
+        /**
+         * Raised when a scroll event occurs on the {@link OpenSeadragon.Viewer#canvas} element (mouse wheel).
+         *
+         * @event canvas-scroll
+         * @memberof OpenSeadragon.Viewer
+         * @type {object}
+         * @property {OpenSeadragon.Viewer} eventSource - A reference to the Viewer which raised this event.
+         * @property {OpenSeadragon.MouseTracker} tracker - A reference to the MouseTracker which originated this event.
+         * @property {OpenSeadragon.Point} position - The position of the event relative to the tracked element.
+         * @property {Number} scroll - The scroll delta for the event.
+         * @property {Boolean} shift - True if the shift key was pressed during this event.
+         * @property {Object} originalEvent - The original DOM event.
+         * @property {?Object} userData - Arbitrary subscriber-defined object.
+         */
+        this.raiseEvent( 'canvas-scroll', {
+            tracker: event.eventSource,
+            position: event.position,
+            scroll: event.scroll,
+            shift: event.shift,
+            originalEvent: event.originalEvent
+        });
+        if (gestureSettings && gestureSettings.scrollToZoom) {
+            //cancels event
+            return false;
         }
     }
-    /**
-     * Raised when a scroll event occurs on the {@link OpenSeadragon.Viewer#canvas} element (mouse wheel).
-     *
-     * @event canvas-scroll
-     * @memberof OpenSeadragon.Viewer
-     * @type {object}
-     * @property {OpenSeadragon.Viewer} eventSource - A reference to the Viewer which raised this event.
-     * @property {OpenSeadragon.MouseTracker} tracker - A reference to the MouseTracker which originated this event.
-     * @property {OpenSeadragon.Point} position - The position of the event relative to the tracked element.
-     * @property {Number} scroll - The scroll delta for the event.
-     * @property {Boolean} shift - True if the shift key was pressed during this event.
-     * @property {Object} originalEvent - The original DOM event.
-     * @property {?Object} userData - Arbitrary subscriber-defined object.
-     */
-    this.raiseEvent( 'canvas-scroll', {
-        tracker: event.eventSource,
-        position: event.position,
-        scroll: event.scroll,
-        shift: event.shift,
-        originalEvent: event.originalEvent
-    });
-    //cancels event
-    return false;
-}
-
-function onContainerExit( event ) {
-    if ( !event.insideElementPressed ) {
-        THIS[ this.hash ].mouseInside = false;
-        if ( !THIS[ this.hash ].animating ) {
-            beginControlsAutoHide( this );
-        }
+    else {
+        return false;   // We are swallowing this event
     }
-    /**
-     * Raised when the cursor leaves the {@link OpenSeadragon.Viewer#container} element.
-     *
-     * @event container-exit
-     * @memberof OpenSeadragon.Viewer
-     * @type {object}
-     * @property {OpenSeadragon.Viewer} eventSource - A reference to the Viewer which raised this event.
-     * @property {OpenSeadragon.MouseTracker} tracker - A reference to the MouseTracker which originated this event.
-     * @property {OpenSeadragon.Point} position - The position of the event relative to the tracked element.
-     * @property {Number} buttons - Current buttons pressed. A combination of bit flags 0: none, 1: primary (or touch contact), 2: secondary, 4: aux (often middle), 8: X1 (often back), 16: X2 (often forward), 32: pen eraser.
-     * @property {Boolean} insideElementPressed - True if the left mouse button is currently being pressed and was initiated inside the tracked element, otherwise false.
-     * @property {Boolean} buttonDownAny - Was the button down anywhere in the screen during the event. <span style="color:red;">Deprecated. Use buttons instead.</span>
-     * @property {Object} originalEvent - The original DOM event.
-     * @property {?Object} userData - Arbitrary subscriber-defined object.
-     */
-    this.raiseEvent( 'container-exit', {
-        tracker: event.eventSource,
-        position: event.position,
-        buttons: event.buttons,
-        insideElementPressed: event.insideElementPressed,
-        buttonDownAny: event.buttonDownAny,
-        originalEvent: event.originalEvent
-    });
-}
-
-function onContainerPress( event ) {
-    if ( event.pointerType === 'touch' && !$.MouseTracker.haveTouchEnter ) {
-        THIS[ this.hash ].mouseInside = true;
-        abortControlsAutoHide( this );
-    }
-}
-
-function onContainerRelease( event ) {
-    if ( !event.insideElementReleased || ( event.pointerType === 'touch' && !$.MouseTracker.haveTouchEnter ) ) {
-        THIS[ this.hash ].mouseInside = false;
-        if ( !THIS[ this.hash ].animating ) {
-            beginControlsAutoHide( this );
-        }
-    }
-    /**
-     * Raised when the mouse button is released or touch ends on the {@link OpenSeadragon.Viewer#container} element.
-     *
-     * @event container-release
-     * @memberof OpenSeadragon.Viewer
-     * @type {object}
-     * @property {OpenSeadragon.Viewer} eventSource - A reference to the Viewer which raised this event.
-     * @property {OpenSeadragon.MouseTracker} tracker - A reference to the MouseTracker which originated this event.
-     * @property {OpenSeadragon.Point} position - The position of the event relative to the tracked element.
-     * @property {Boolean} insideElementPressed - True if the left mouse button is currently being pressed and was initiated inside the tracked element, otherwise false.
-     * @property {Boolean} insideElementReleased - True if the cursor still inside the tracked element when the button was released.
-     * @property {Object} originalEvent - The original DOM event.
-     * @property {?Object} userData - Arbitrary subscriber-defined object.
-     */
-    this.raiseEvent( 'container-release', {
-        tracker: event.eventSource,
-        position: event.position,
-        insideElementPressed: event.insideElementPressed,
-        insideElementReleased: event.insideElementReleased,
-        originalEvent: event.originalEvent
-    });
 }
 
 function onContainerEnter( event ) {
@@ -8704,6 +9538,7 @@ function onContainerEnter( event ) {
      * @property {OpenSeadragon.MouseTracker} tracker - A reference to the MouseTracker which originated this event.
      * @property {OpenSeadragon.Point} position - The position of the event relative to the tracked element.
      * @property {Number} buttons - Current buttons pressed. A combination of bit flags 0: none, 1: primary (or touch contact), 2: secondary, 4: aux (often middle), 8: X1 (often back), 16: X2 (often forward), 32: pen eraser.
+     * @property {Number} pointers - Number of pointers (all types) active in the tracked element.
      * @property {Boolean} insideElementPressed - True if the left mouse button is currently being pressed and was initiated inside the tracked element, otherwise false.
      * @property {Boolean} buttonDownAny - Was the button down anywhere in the screen during the event. <span style="color:red;">Deprecated. Use buttons instead.</span>
      * @property {Object} originalEvent - The original DOM event.
@@ -8713,6 +9548,41 @@ function onContainerEnter( event ) {
         tracker: event.eventSource,
         position: event.position,
         buttons: event.buttons,
+        pointers: event.pointers,
+        insideElementPressed: event.insideElementPressed,
+        buttonDownAny: event.buttonDownAny,
+        originalEvent: event.originalEvent
+    });
+}
+
+function onContainerExit( event ) {
+    if ( event.pointers < 1 ) {
+        THIS[ this.hash ].mouseInside = false;
+        if ( !THIS[ this.hash ].animating ) {
+            beginControlsAutoHide( this );
+        }
+    }
+    /**
+     * Raised when the cursor leaves the {@link OpenSeadragon.Viewer#container} element.
+     *
+     * @event container-exit
+     * @memberof OpenSeadragon.Viewer
+     * @type {object}
+     * @property {OpenSeadragon.Viewer} eventSource - A reference to the Viewer which raised this event.
+     * @property {OpenSeadragon.MouseTracker} tracker - A reference to the MouseTracker which originated this event.
+     * @property {OpenSeadragon.Point} position - The position of the event relative to the tracked element.
+     * @property {Number} buttons - Current buttons pressed. A combination of bit flags 0: none, 1: primary (or touch contact), 2: secondary, 4: aux (often middle), 8: X1 (often back), 16: X2 (often forward), 32: pen eraser.
+     * @property {Number} pointers - Number of pointers (all types) active in the tracked element.
+     * @property {Boolean} insideElementPressed - True if the left mouse button is currently being pressed and was initiated inside the tracked element, otherwise false.
+     * @property {Boolean} buttonDownAny - Was the button down anywhere in the screen during the event. <span style="color:red;">Deprecated. Use buttons instead.</span>
+     * @property {Object} originalEvent - The original DOM event.
+     * @property {?Object} userData - Arbitrary subscriber-defined object.
+     */
+    this.raiseEvent( 'container-exit', {
+        tracker: event.eventSource,
+        position: event.position,
+        buttons: event.buttons,
+        pointers: event.pointers,
         insideElementPressed: event.insideElementPressed,
         buttonDownAny: event.buttonDownAny,
         originalEvent: event.originalEvent
@@ -8737,25 +9607,58 @@ function updateMulti( viewer ) {
 
 function updateOnce( viewer ) {
 
-    var containerSize,
-        animated;
-
     //viewer.profiler.beginUpdate();
 
+    if (viewer._opening) {
+        return;
+    }
+
+    var containerSize;
     if ( viewer.autoResize ) {
         containerSize = _getSafeElemSize( viewer.container );
         if ( !containerSize.equals( THIS[ viewer.hash ].prevContainerSize ) ) {
-            // maintain image position
-            var oldBounds = viewer.viewport.getBounds();
-            var oldCenter = viewer.viewport.getCenter();
-            resizeViewportAndRecenter(viewer, containerSize, oldBounds, oldCenter);
+            if ( viewer.preserveImageSizeOnResize ) {
+                var prevContainerSize = THIS[ viewer.hash ].prevContainerSize;
+                var bounds = viewer.viewport.getBounds(true);
+                var deltaX = (containerSize.x - prevContainerSize.x);
+                var deltaY = (containerSize.y - prevContainerSize.y);
+                var viewportDiff = viewer.viewport.deltaPointsFromPixels(new OpenSeadragon.Point(deltaX, deltaY), true);
+                viewer.viewport.resize(new OpenSeadragon.Point(containerSize.x, containerSize.y), false);
+
+                // Keep the center of the image in the center and just adjust the amount of image shown
+                bounds.width += viewportDiff.x;
+                bounds.height += viewportDiff.y;
+                bounds.x -= (viewportDiff.x / 2);
+                bounds.y -= (viewportDiff.y / 2);
+                viewer.viewport.fitBoundsWithConstraints(bounds, true);
+            }
+            else {
+                // maintain image position
+                var oldBounds = viewer.viewport.getBounds();
+                var oldCenter = viewer.viewport.getCenter();
+                resizeViewportAndRecenter(viewer, containerSize, oldBounds, oldCenter);
+            }
             THIS[ viewer.hash ].prevContainerSize = containerSize;
             THIS[ viewer.hash ].forceRedraw = true;
         }
     }
 
-    animated = viewer.viewport.update();
-    animated = viewer.world.update() || animated;
+    var viewportChange = viewer.viewport.update();
+    var animated = viewer.world.update() || viewportChange;
+
+    if (viewportChange) {
+        /**
+         * Raised when any spring animation update occurs (zoom, pan, etc.),
+         * before the viewer has drawn the new location.
+         *
+         * @event viewport-change
+         * @memberof OpenSeadragon.Viewer
+         * @type {object}
+         * @property {OpenSeadragon.Viewer} eventSource - A reference to the Viewer which raised this event.
+         * @property {?Object} userData - Arbitrary subscriber-defined object.
+         */
+        viewer.raiseEvent('viewport-change');
+    }
 
     if( viewer.referenceStrip ){
         animated = viewer.referenceStrip.update( viewer.viewport ) || animated;
@@ -8786,7 +9689,8 @@ function updateOnce( viewer ) {
 
         if (animated) {
             /**
-             * Raised when any spring animation update occurs (zoom, pan, etc.).
+             * Raised when any spring animation update occurs (zoom, pan, etc.),
+             * after the viewer has drawn the new location.
              *
              * @event animation
              * @memberof OpenSeadragon.Viewer
@@ -8830,22 +9734,19 @@ function resizeViewportAndRecenter( viewer, containerSize, oldBounds, oldCenter 
 
     viewport.resize( containerSize, true );
 
-    // We try to remove blanks as much as possible
-    var worldBounds = viewer.world.getHomeBounds();
-    var newWidth = oldBounds.width <= worldBounds.width ? oldBounds.width : worldBounds.width;
-    var newHeight = oldBounds.height <= worldBounds.height ?
-        oldBounds.height : worldBounds.height;
-
     var newBounds = new $.Rect(
-        oldCenter.x - ( newWidth / 2.0 ),
-        oldCenter.y - ( newHeight / 2.0 ),
-        newWidth,
-        newHeight
-        );
-    viewport.fitBounds( newBounds, true );
+        oldCenter.x - ( oldBounds.width / 2.0 ),
+        oldCenter.y - ( oldBounds.height / 2.0 ),
+        oldBounds.width,
+        oldBounds.height
+    );
+
+    // let the viewport decide if the bounds are too big or too small
+    viewport.fitBoundsWithConstraints( newBounds, true );
 }
 
 function drawWorld( viewer ) {
+    viewer.imageLoader.clear();
     viewer.drawer.clear();
     viewer.world.draw();
 
@@ -9073,8 +9974,7 @@ $.Navigator = function( options ){
     var viewer      = options.viewer,
         _this = this,
         viewerSize,
-        navigatorSize,
-        unneededElement;
+        navigatorSize;
 
     //We may need to create a new element and id if they did not
     //provide the id for the existing element
@@ -9120,6 +10020,7 @@ $.Navigator = function( options ){
         sizeRatio:     $.DEFAULT_SETTINGS.navigatorSizeRatio
     }, options, {
         element:                this.element,
+        tabIndex:               -1, // No keyboard navigation, omit from tab order
         //These need to be overridden to prevent recursion since
         //the navigator is a viewer and a viewer has a navigator
         showNavigator:          false,
@@ -9129,7 +10030,9 @@ $.Navigator = function( options ){
         immediateRender:        true,
         blendTime:              0,
         animationTime:          0,
-        autoResize:             options.autoResize
+        autoResize:             options.autoResize,
+        // prevent resizing the navigator from adding unwanted space around the image
+        minZoomImageRatio:      1.0
     });
 
     options.minPixelRatio = this.minPixelRatio = viewer.minPixelRatio;
@@ -9189,24 +10092,6 @@ $.Navigator = function( options ){
     this.displayRegionContainer.style.width = "100%";
     this.displayRegionContainer.style.height = "100%";
 
-    this.element.innerTracker = new $.MouseTracker({
-        element:         this.element,
-        dragHandler:     $.delegate( this, onCanvasDrag ),
-        clickHandler:    $.delegate( this, onCanvasClick ),
-        releaseHandler:  $.delegate( this, onCanvasRelease ),
-        scrollHandler:   $.delegate( this, onCanvasScroll )
-    }).setTracking( true );
-
-    /*this.displayRegion.outerTracker = new $.MouseTracker({
-        element:            this.container,
-        clickTimeThreshold: this.clickTimeThreshold,
-        clickDistThreshold: this.clickDistThreshold,
-        enterHandler:       $.delegate( this, onContainerEnter ),
-        exitHandler:        $.delegate( this, onContainerExit ),
-        releaseHandler:     $.delegate( this, onContainerRelease )
-    }).setTracking( this.mouseNavEnabled ? true : false ); // always tracking*/
-
-
     viewer.addControl(
         this.element,
         options.controlOptions
@@ -9235,10 +10120,6 @@ $.Navigator = function( options ){
 
     this.displayRegionContainer.appendChild(this.displayRegion);
     this.element.getElementsByTagName('div')[0].appendChild(this.displayRegionContainer);
-    unneededElement = this.element.getElementsByTagName('textarea')[0];
-    if (unneededElement) {
-        unneededElement.parentNode.removeChild(unneededElement);
-    }
 
     if (options.navigatorRotate) {
         options.viewer.addHandler("rotate", function (args) {
@@ -9247,6 +10128,16 @@ $.Navigator = function( options ){
             _this.viewport.setRotation(args.degrees);
         });
     }
+
+    // Remove the base class' (Viewer's) innerTracker and replace it with our own
+    this.innerTracker.destroy();
+    this.innerTracker = new $.MouseTracker({
+        element:         this.element,
+        dragHandler:     $.delegate( this, onCanvasDrag ),
+        clickHandler:    $.delegate( this, onCanvasClick ),
+        releaseHandler:  $.delegate( this, onCanvasRelease ),
+        scrollHandler:   $.delegate( this, onCanvasScroll )
+    });
 
     this.addHandler("reset-size", function() {
         if (_this.viewport) {
@@ -9266,14 +10157,10 @@ $.Navigator = function( options ){
     });
 
     viewer.world.addHandler("remove-item", function(event) {
-        var count = _this.world.getItemCount();
-        var item;
-        for (var i = 0; i < count; i++) {
-            item = _this.world.getItemAt(i);
-            if (item._originalForNavigator === event.item) {
-                _this.world.removeItem(item);
-                break;
-            }
+        var theirItem = event.item;
+        var myItem = _this._getMatchingItem(theirItem);
+        if (myItem) {
+            _this.world.removeItem(myItem);
         }
     });
 
@@ -9319,7 +10206,7 @@ $.extend( $.Navigator.prototype, $.EventSource.prototype, $.Viewer.prototype, /*
             bottomright;
 
         viewerSize = $.getElementSize( this.viewer.element );
-        if ( this._resizeWithViewer && !viewerSize.equals( this.oldViewerSize ) ) {
+        if ( this._resizeWithViewer && viewerSize.x && viewerSize.y && !viewerSize.equals( this.oldViewerSize ) ) {
             this.oldViewerSize = viewerSize;
 
             if ( this.maintainSizeRatio || !this.elementArea) {
@@ -9364,16 +10251,45 @@ $.extend( $.Navigator.prototype, $.EventSource.prototype, $.Viewer.prototype, /*
 
     // overrides Viewer.addTiledImage
     addTiledImage: function(options) {
+        var _this = this;
+
         var original = options.originalTiledImage;
         delete options.original;
 
         var optionsClone = $.extend({}, options, {
             success: function(event) {
-                event.item._originalForNavigator = original;
+                var myItem = event.item;
+                myItem._originalForNavigator = original;
+                _this._matchBounds(myItem, original, true);
+
+                original.addHandler('bounds-change', function() {
+                    _this._matchBounds(myItem, original);
+                });
             }
         });
 
         return $.Viewer.prototype.addTiledImage.apply(this, [optionsClone]);
+    },
+
+    // private
+    _getMatchingItem: function(theirItem) {
+        var count = this.world.getItemCount();
+        var item;
+        for (var i = 0; i < count; i++) {
+            item = this.world.getItemAt(i);
+            if (item._originalForNavigator === theirItem) {
+                return item;
+            }
+        }
+
+        return null;
+    },
+
+    // private
+    _matchBounds: function(myItem, theirItem, immediately) {
+        var bounds = theirItem.getBounds();
+        myItem.setPosition(bounds.getTopLeft(), immediately);
+        myItem.setWidth(bounds.width, immediately);
     }
 });
 
@@ -9837,44 +10753,57 @@ $.Point.prototype = /** @lends OpenSeadragon.Point.prototype */{
 /**
  * @class TileSource
  * @classdesc The TileSource contains the most basic implementation required to create a
- * smooth transition between layer in an image pyramid. It has only a single key
- * interface that must be implemented to complete it key functionality:
+ * smooth transition between layers in an image pyramid. It has only a single key
+ * interface that must be implemented to complete its key functionality:
  * 'getTileUrl'.  It also has several optional interfaces that can be
  * implemented if a new TileSource wishes to support configuration via a simple
  * object or array ('configure') and if the tile source supports or requires
- * configuration via retreival of a document on the network ala AJAX or JSONP,
+ * configuration via retrieval of a document on the network ala AJAX or JSONP,
  * ('getImageInfo').
  * <br/>
- * By default the image pyramid is split into N layers where the images longest
+ * By default the image pyramid is split into N layers where the image's longest
  * side in M (in pixels), where N is the smallest integer which satisfies
  *      <strong>2^(N+1) >= M</strong>.
  *
  * @memberof OpenSeadragon
  * @extends OpenSeadragon.EventSource
- * @param {Number|Object|Array|String} width
- *      If more than a single argument is supplied, the traditional use of
- *      positional parameters is supplied and width is expected to be the width
- *      source image at its max resolution in pixels.  If a single argument is supplied and
- *      it is an Object or Array, the construction is assumed to occur through
- *      the extending classes implementation of 'configure'.  Finally if only a
- *      single argument is supplied and it is a String, the extending class is
- *      expected to implement 'getImageInfo' and 'configure'.
- * @param {Number} height
+ * @param {Object} options
+ *      You can either specify a URL, or literally define the TileSource (by specifying
+ *      width, height, tileSize, tileOverlap, minLevel, and maxLevel). For the former,
+ *      the extending class is expected to implement 'getImageInfo' and 'configure'.
+ *      For the latter, the construction is assumed to occur through
+ *      the extending classes implementation of 'configure'.
+ * @param {String} [options.url]
+ *      The URL for the data necessary for this TileSource.
+ * @param {Function} [options.success]
+ *      A function to be called upon successful creation.
+ * @param {Boolean} [options.ajaxWithCredentials]
+ *      If this TileSource needs to make an AJAX call, this specifies whether to set
+ *      the XHR's withCredentials (for accessing secure data).
+ * @param {Number} [options.width]
  *      Width of the source image at max resolution in pixels.
- * @param {Number} tileSize
+ * @param {Number} [options.height]
+ *      Height of the source image at max resolution in pixels.
+ * @param {Number} [options.tileSize]
  *      The size of the tiles to assumed to make up each pyramid layer in pixels.
  *      Tile size determines the point at which the image pyramid must be
  *      divided into a matrix of smaller images.
- * @param {Number} tileOverlap
+ *      Use options.tileWidth and options.tileHeight to support non-square tiles.
+ * @param {Number} [options.tileWidth]
+ *      The width of the tiles to assumed to make up each pyramid layer in pixels.
+ * @param {Number} [options.tileHeight]
+ *      The height of the tiles to assumed to make up each pyramid layer in pixels.
+ * @param {Number} [options.tileOverlap]
  *      The number of pixels each tile is expected to overlap touching tiles.
- * @param {Number} minLevel
+ * @param {Number} [options.minLevel]
  *      The minimum level to attempt to load.
- * @param {Number} maxLevel
+ * @param {Number} [options.maxLevel]
  *      The maximum level to attempt to load.
  */
 $.TileSource = function( width, height, tileSize, tileOverlap, minLevel, maxLevel ) {
-    var callback = null,
-        args = arguments,
+    var _this = this;
+
+    var args = arguments,
         options,
         i;
 
@@ -9901,17 +10830,21 @@ $.TileSource = function( width, height, tileSize, tileOverlap, minLevel, maxLeve
     //source
     $.extend( true, this, options );
 
-    //Any functions that are passed as arguments are bound to the ready callback
-    /*jshint loopfunc:true*/
-    for ( i = 0; i < arguments.length; i++ ) {
-        if ( $.isFunction( arguments[ i ] ) ) {
-            callback = arguments[ i ];
-            this.addHandler( 'ready', function ( event ) {
-                callback( event );
-            } );
-            //only one callback per constructor
-            break;
+    if (!this.success) {
+        //Any functions that are passed as arguments are bound to the ready callback
+        for ( i = 0; i < arguments.length; i++ ) {
+            if ( $.isFunction( arguments[ i ] ) ) {
+                this.success = arguments[ i ];
+                //only one callback per constructor
+                break;
+            }
         }
+    }
+
+    if (this.success) {
+        this.addHandler( 'ready', function ( event ) {
+            _this.success( event );
+        } );
     }
 
     /**
@@ -9922,13 +10855,6 @@ $.TileSource = function( width, height, tileSize, tileOverlap, minLevel, maxLeve
     /**
      * Vector storing x and y dimensions ( width and height respectively ).
      * @member {OpenSeadragon.Point} dimensions
-     * @memberof OpenSeadragon.TileSource#
-     */
-    /**
-     * The size of the image tiles used to compose the image.
-     * Please note that tileSize may be deprecated in a future release. 
-     * Instead the getTileSize(level) function should be used.
-     * @member {Number} tileSize
      * @memberof OpenSeadragon.TileSource#
      */
     /**
@@ -9947,24 +10873,29 @@ $.TileSource = function( width, height, tileSize, tileOverlap, minLevel, maxLeve
      * @memberof OpenSeadragon.TileSource#
      */
     /**
-     * 
+     *
      * @member {Boolean} ready
      * @memberof OpenSeadragon.TileSource#
      */
 
     if( 'string' == $.type( arguments[ 0 ] ) ){
+        this.url = arguments[0];
+    }
+
+    if (this.url) {
         //in case the getImageInfo method is overriden and/or implies an
         //async mechanism set some safe defaults first
         this.aspectRatio = 1;
         this.dimensions  = new $.Point( 10, 10 );
-        this.tileSize    = 0;
+        this._tileWidth  = 0;
+        this._tileHeight = 0;
         this.tileOverlap = 0;
         this.minLevel    = 0;
         this.maxLevel    = 0;
         this.ready       = false;
         //configuration via url implies the extending class
         //implements and 'configure'
-        this.getImageInfo( arguments[ 0 ] );
+        this.getImageInfo( this.url );
 
     } else {
 
@@ -9974,7 +10905,29 @@ $.TileSource = function( width, height, tileSize, tileOverlap, minLevel, maxLeve
         this.aspectRatio = ( options.width && options.height ) ?
             (  options.width / options.height ) : 1;
         this.dimensions  = new $.Point( options.width, options.height );
-        this.tileSize    = options.tileSize ? options.tileSize : 0;
+        
+        if ( this.tileSize ){
+            this._tileWidth = this._tileHeight = this.tileSize;
+            delete this.tileSize;
+        } else {
+            if( this.tileWidth ){
+                // We were passed tileWidth in options, but we want to rename it
+                // with a leading underscore to make clear that it is not safe to directly modify it
+                this._tileWidth = this.tileWidth;
+                delete this.tileWidth;
+            } else {
+                this._tileWidth = 0;
+            }
+
+            if( this.tileHeight ){
+                // See note above about renaming this.tileWidth
+                this._tileHeight = this.tileHeight;
+                delete this.tileHeight;
+            } else {
+                this._tileHeight = 0;
+            }
+        }
+        
         this.tileOverlap = options.tileOverlap ? options.tileOverlap : 0;
         this.minLevel    = options.minLevel ? options.minLevel : 0;
         this.maxLevel    = ( undefined !== options.maxLevel && null !== options.maxLevel ) ?
@@ -9984,8 +10937,8 @@ $.TileSource = function( width, height, tileSize, tileOverlap, minLevel, maxLeve
                     Math.log( 2 )
                 ) : 0
             );
-        if( callback && $.isFunction( callback ) ){
-            callback( this );
+        if( this.success && $.isFunction( this.success ) ){
+            this.success( this );
         }
     }
 
@@ -9995,16 +10948,42 @@ $.TileSource = function( width, height, tileSize, tileOverlap, minLevel, maxLeve
 
 $.TileSource.prototype = /** @lends OpenSeadragon.TileSource.prototype */{
 
+    getTileSize: function( level ) {
+        $.console.error(
+            "[TileSource.getTileSize] is deprecated." +
+            "Use TileSource.getTileWidth() and TileSource.getTileHeight() instead"
+        );
+        return this._tileWidth;
+    },
+    
     /**
-     * Return the tileSize for a given level. 
-     * Subclasses should override this if tileSizes can be different at different levels
+     * Return the tileWidth for a given level.
+     * Subclasses should override this if tileWidth can be different at different levels
      *   such as in IIIFTileSource.  Code should use this function rather than reading
-     *   from .tileSize directly.  tileSize may be deprecated in a future release.
+     *   from ._tileWidth directly.
      * @function
      * @param {Number} level
      */
-    getTileSize: function( level ) {
-        return this.tileSize;
+    getTileWidth: function( level ) {
+        if (!this._tileWidth) {
+            return this.getTileSize(level);
+        }
+        return this._tileWidth;
+    },
+
+    /**
+     * Return the tileHeight for a given level.
+     * Subclasses should override this if tileHeight can be different at different levels
+     *   such as in IIIFTileSource.  Code should use this function rather than reading
+     *   from ._tileHeight directly.
+     * @function
+     * @param {Number} level
+     */
+    getTileHeight: function( level ) {
+        if (!this._tileHeight) {
+            return this.getTileSize(level);
+        }
+        return this._tileHeight;
     },
 
     /**
@@ -10033,8 +11012,8 @@ $.TileSource.prototype = /** @lends OpenSeadragon.TileSource.prototype */{
      */
     getNumTiles: function( level ) {
         var scale = this.getLevelScale( level ),
-            x = Math.ceil( scale * this.dimensions.x / this.getTileSize(level) ),
-            y = Math.ceil( scale * this.dimensions.y / this.getTileSize(level) );
+            x = Math.ceil( scale * this.dimensions.x / this.getTileWidth(level) ),
+            y = Math.ceil( scale * this.dimensions.y / this.getTileHeight(level) );
 
         return new $.Point( x, y );
     },
@@ -10060,10 +11039,15 @@ $.TileSource.prototype = /** @lends OpenSeadragon.TileSource.prototype */{
         var i,
             tilesPerSide,
             tiles;
+
         for( i = this.minLevel; i < this.maxLevel; i++ ){
             tiles = this.getNumTiles( i );
-            tilesPerSide = Math.floor( Math.max( rect.x, rect.y ) / this.getTileSize(i) );
-            if( Math.max( tiles.x, tiles.y ) + 1 >= tilesPerSide ){
+            tilesPerSide = new $.Point(
+              Math.floor( rect.x / this.getTileWidth(i) ),
+              Math.floor( rect.y / this.getTileHeight(i) )
+            );
+            
+            if( tiles.x + 1 >= tilesPerSide.x && tiles.y + 1 >= tilesPerSide.y ){
                 break;
             }
         }
@@ -10076,9 +11060,9 @@ $.TileSource.prototype = /** @lends OpenSeadragon.TileSource.prototype */{
      * @param {OpenSeadragon.Point} point
      */
     getTileAtPoint: function( level, point ) {
-        var pixel = point.times( this.dimensions.x ).times( this.getLevelScale(level ) ),
-            tx = Math.floor( pixel.x / this.getTileSize(level) ),
-            ty = Math.floor( pixel.y / this.getTileSize(level) );
+        var pixel = point.times( this.dimensions.x ).times( this.getLevelScale(level) ),
+            tx = Math.floor( pixel.x / this.getTileWidth(level) ),
+            ty = Math.floor( pixel.y / this.getTileHeight(level) );
 
         return new $.Point( tx, ty );
     },
@@ -10091,11 +11075,12 @@ $.TileSource.prototype = /** @lends OpenSeadragon.TileSource.prototype */{
      */
     getTileBounds: function( level, x, y ) {
         var dimensionsScaled = this.dimensions.times( this.getLevelScale( level ) ),
-            tileSize = this.getTileSize(level),
-            px = ( x === 0 ) ? 0 : tileSize * x - this.tileOverlap,
-            py = ( y === 0 ) ? 0 : tileSize * y - this.tileOverlap,
-            sx = tileSize + ( x === 0 ? 1 : 2 ) * this.tileOverlap,
-            sy = tileSize + ( y === 0 ? 1 : 2 ) * this.tileOverlap,
+            tileWidth = this.getTileWidth(level),
+            tileHeight = this.getTileHeight(level),
+            px = ( x === 0 ) ? 0 : tileWidth * x - this.tileOverlap,
+            py = ( y === 0 ) ? 0 : tileHeight * y - this.tileOverlap,
+            sx = tileWidth + ( x === 0 ? 1 : 2 ) * this.tileOverlap,
+            sy = tileHeight + ( y === 0 ? 1 : 2 ) * this.tileOverlap,
             scale = 1.0 / dimensionsScaled.x;
 
         sx = Math.min( sx, dimensionsScaled.x - px );
@@ -10154,6 +11139,10 @@ $.TileSource.prototype = /** @lends OpenSeadragon.TileSource.prototype */{
             }
 
             options = $TileSource.prototype.configure.apply( _this, [ data, url ]);
+            if (options.ajaxWithCredentials === undefined) {
+                options.ajaxWithCredentials = _this.ajaxWithCredentials;
+            }
+
             readySource = new $TileSource( options );
             _this.ready = true;
             /**
@@ -10182,45 +11171,50 @@ $.TileSource.prototype = /** @lends OpenSeadragon.TileSource.prototype */{
             });
         } else {
             // request info via xhr asynchronously.
-            $.makeAjaxRequest( url, function( xhr ) {
-                var data = processResponse( xhr );
-                callback( data );
-            }, function ( xhr, exc ) {
-                var msg;
+            $.makeAjaxRequest( {
+                url: url,
+                withCredentials: this.ajaxWithCredentials,
+                success: function( xhr ) {
+                    var data = processResponse( xhr );
+                    callback( data );
+                },
+                error: function ( xhr, exc ) {
+                    var msg;
 
-                /*
-                    IE < 10 will block XHR requests to different origins. Any property access on the request
-                    object will raise an exception which we'll attempt to handle by formatting the original
-                    exception rather than the second one raised when we try to access xhr.status
-                 */
-                try {
-                    msg = "HTTP " + xhr.status + " attempting to load TileSource";
-                } catch ( e ) {
-                    var formattedExc;
-                    if ( typeof( exc ) == "undefined" || !exc.toString ) {
-                        formattedExc = "Unknown error";
-                    } else {
-                        formattedExc = exc.toString();
+                    /*
+                        IE < 10 will block XHR requests to different origins. Any property access on the request
+                        object will raise an exception which we'll attempt to handle by formatting the original
+                        exception rather than the second one raised when we try to access xhr.status
+                     */
+                    try {
+                        msg = "HTTP " + xhr.status + " attempting to load TileSource";
+                    } catch ( e ) {
+                        var formattedExc;
+                        if ( typeof( exc ) == "undefined" || !exc.toString ) {
+                            formattedExc = "Unknown error";
+                        } else {
+                            formattedExc = exc.toString();
+                        }
+
+                        msg = formattedExc + " attempting to load TileSource";
                     }
 
-                    msg = formattedExc + " attempting to load TileSource";
+                    /***
+                     * Raised when an error occurs loading a TileSource.
+                     *
+                     * @event open-failed
+                     * @memberof OpenSeadragon.TileSource
+                     * @type {object}
+                     * @property {OpenSeadragon.TileSource} eventSource - A reference to the TileSource which raised the event.
+                     * @property {String} message
+                     * @property {String} source
+                     * @property {?Object} userData - Arbitrary subscriber-defined object.
+                     */
+                    _this.raiseEvent( 'open-failed', {
+                        message: msg,
+                        source: url
+                    });
                 }
-
-                /***
-                 * Raised when an error occurs loading a TileSource.
-                 *
-                 * @event open-failed
-                 * @memberof OpenSeadragon.TileSource
-                 * @type {object}
-                 * @property {OpenSeadragon.TileSource} eventSource - A reference to the TileSource which raised the event.
-                 * @property {String} message
-                 * @property {String} source
-                 * @property {?Object} userData - Arbitrary subscriber-defined object.
-                 */
-                _this.raiseEvent( 'open-failed', {
-                    message: msg,
-                    source: url
-                });
             });
         }
 
@@ -10334,8 +11328,7 @@ function processResponse( xhr ){
             data = xhr.responseText;
         }
     }else if( responseText.match(/\s*[\{\[].*/) ){
-        /*jshint evil:true*/
-        data = eval( '('+responseText+')' );
+        data = $.parseJSON(responseText);
     }else{
         data = responseText;
     }
@@ -10480,8 +11473,10 @@ $.extend( $.DziTileSource.prototype, $.TileSource.prototype, /** @lends OpenSead
         var ns;
         if ( data.Image ) {
             ns = data.Image.xmlns;
-        } else if ( data.documentElement && "Image" == data.documentElement.localName ) {
-            ns = data.documentElement.namespaceURI;
+        } else if ( data.documentElement) {
+            if ("Image" == data.documentElement.localName || "Image" == data.documentElement.tagName) {
+                ns = data.documentElement.namespaceURI;
+            }
         }
 
         return ( "http://schemas.microsoft.com/deepzoom/2008" == ns ||
@@ -10594,7 +11589,7 @@ function configureFromXML( tileSource, xmlDoc ){
     }
 
     var root           = xmlDoc.documentElement,
-        rootName       = root.localName,
+        rootName       = root.localName || root.tagName,
         ns             = xmlDoc.documentElement.namespaceURI,
         configuration  = null,
         displayRects   = [],
@@ -10607,7 +11602,10 @@ function configureFromXML( tileSource, xmlDoc ){
     if ( rootName == "Image" ) {
 
         try {
-            sizeNode = root.getElementsByTagNameNS(ns, "Size" )[ 0 ];
+            sizeNode = root.getElementsByTagName("Size" )[ 0 ];
+            if (sizeNode === undefined) {
+                sizeNode = root.getElementsByTagNameNS(ns, "Size" )[ 0 ];
+            }
 
             configuration = {
                 Image: {
@@ -10630,11 +11628,17 @@ function configureFromXML( tileSource, xmlDoc ){
                 );
             }
 
-            dispRectNodes = root.getElementsByTagNameNS(ns, "DisplayRect" );
+            dispRectNodes = root.getElementsByTagName("DisplayRect" );
+            if (dispRectNodes === undefined) {
+                dispRectNodes = root.getElementsByTagNameNS(ns, "DisplayRect" )[ 0 ];
+            }
 
             for ( i = 0; i < dispRectNodes.length; i++ ) {
                 dispRectNode = dispRectNodes[ i ];
-                rectNode     = dispRectNode.getElementsByTagNameNS(ns, "Rect" )[ 0 ];
+                rectNode     = dispRectNode.getElementsByTagName("Rect" )[ 0 ];
+                if (rectNode === undefined) {
+                    rectNode = dispRectNode.getElementsByTagNameNS(ns, "Rect" )[ 0 ];
+                }
 
                 displayRects.push({
                     Rect: {
@@ -10786,14 +11790,19 @@ $.IIIFTileSource = function( options ){
     options.tileSizePerScaleFactor = {};
 
     // N.B. 2.0 renamed scale_factors to scaleFactors
-    if ( this.tile_width ) {
+    if ( this.tile_width && this.tile_height ) {
+        options.tileWidth = this.tile_width;
+        options.tileHeight = this.tile_height;
+    } else if ( this.tile_width ) {
         options.tileSize = this.tile_width;
     } else if ( this.tile_height ) {
         options.tileSize = this.tile_height;
     } else if ( this.tiles ) {
         // Version 2.0 forwards
         if ( this.tiles.length == 1 ) {
-            options.tileSize = this.tiles[0].width;
+            options.tileWidth  = this.tiles[0].width;
+            // Use height if provided, otherwise assume square tiles and use width.
+            options.tileHeight = this.tiles[0].height || this.tiles[0].width;
             this.scale_factors = this.tiles[0].scaleFactors;
         } else {
             // Multiple tile sizes at different levels
@@ -10802,13 +11811,15 @@ $.IIIFTileSource = function( options ){
                 for (var sf = 0; sf < this.tiles[t].scaleFactors.length; sf++) {
                     var scaleFactor = this.tiles[t].scaleFactors[sf];
                     this.scale_factors.push(scaleFactor);
-                    options.tileSizePerScaleFactor[scaleFactor] = this.tiles[t].width;
+                    options.tileSizePerScaleFactor[scaleFactor] = {
+                        width: this.tiles[t].width,
+                        height: this.tiles[t].height || this.tiles[t].width
+                    };
                 }
             }
         }
     } else {
         // use the largest of tileOptions that is smaller than the short dimension
-
         var shortDim = Math.min( this.height, this.width ),
             tileOptions = [256,512,1024],
             smallerTiles = [];
@@ -10825,8 +11836,6 @@ $.IIIFTileSource = function( options ){
             // If we're smaller than 256, just use the short side.
             options.tileSize = shortDim;
         }
-        this.tile_width = options.tileSize;  // So that 'full' gets used for 
-        this.tile_height = options.tileSize; // the region below
     }
 
     if ( !options.maxLevel ) {
@@ -10848,6 +11857,7 @@ $.extend( $.IIIFTileSource.prototype, $.TileSource.prototype, /** @lends OpenSea
      * @param {Object|Array} data
      * @param {String} optional - url
      */
+     
     supports: function( data, url ) {
         // Version 2.0 and forwards
         if (data.protocol && data.protocol == 'http://iiif.io/api/image') {
@@ -10912,19 +11922,33 @@ $.extend( $.IIIFTileSource.prototype, $.TileSource.prototype, /** @lends OpenSea
     },
 
     /**
-     * Return the tileSize for the given level.
+     * Return the tileWidth for the given level.
      * @function
      * @param {Number} level
-    */
-
-    getTileSize: function( level ){
+     */
+    getTileWidth: function( level ) {
         var scaleFactor = Math.pow(2, this.maxLevel - level);
-        // cache it in case any external code is going to read it directly
+
         if (this.tileSizePerScaleFactor && this.tileSizePerScaleFactor[scaleFactor]) {
-            this.tileSize = this.tileSizePerScaleFactor[scaleFactor];
+            return this.tileSizePerScaleFactor[scaleFactor].width;
         }
-        return this.tileSize;
+        return this._tileWidth;
     },
+
+    /**
+     * Return the tileHeight for the given level.
+     * @function
+     * @param {Number} level
+     */
+    getTileHeight: function( level ) {
+        var scaleFactor = Math.pow(2, this.maxLevel - level);
+
+        if (this.tileSizePerScaleFactor && this.tileSizePerScaleFactor[scaleFactor]) {
+            return this.tileSizePerScaleFactor[scaleFactor].height;
+        }
+        return this._tileHeight;
+    },
+
 
     /**
      * Responsible for retreiving the url which will return an image for the
@@ -10947,6 +11971,8 @@ $.extend( $.IIIFTileSource.prototype, $.TileSource.prototype, /** @lends OpenSea
             levelHeight = Math.ceil( this.height * scale ),
 
             //## iiif region
+            tileWidth,
+            tileHeight,
             iiifTileSizeWidth,
             iiifTileSizeHeight,
             iiifRegion,
@@ -10958,8 +11984,10 @@ $.extend( $.IIIFTileSource.prototype, $.TileSource.prototype, /** @lends OpenSea
             iiifQuality,
             uri;
 
-        iiifTileSizeWidth = Math.ceil( this.getTileSize(level) / scale );
-        iiifTileSizeHeight = iiifTileSizeWidth;
+        tileWidth = this.getTileWidth(level);
+        tileHeight = this.getTileHeight(level);
+        iiifTileSizeWidth = Math.ceil( tileWidth / scale );
+        iiifTileSizeHeight = Math.ceil( tileHeight / scale );
 
         if ( this['@context'].indexOf('/1.0/context.json') > -1 ||
              this['@context'].indexOf('/1.1/context.json') > -1 ||
@@ -10969,7 +11997,7 @@ $.extend( $.IIIFTileSource.prototype, $.TileSource.prototype, /** @lends OpenSea
             iiifQuality = "default.jpg";
         }
 
-        if ( levelWidth < this.tile_width && levelHeight < this.tile_height ){
+        if ( levelWidth < tileWidth && levelHeight < tileHeight ){
             iiifSize = levelWidth + ",";
             iiifRegion = 'full';
         } else {
@@ -10986,6 +12014,7 @@ $.extend( $.IIIFTileSource.prototype, $.TileSource.prototype, /** @lends OpenSea
     }
 
   });
+
 
     function configureFromXml10(xmlDoc) {
         //parse the xml
@@ -11629,6 +12658,294 @@ function configureFromObject( tileSource, configuration ){
 }( OpenSeadragon ));
 
 /*
+ * OpenSeadragon - ImageTileSource
+ *
+ * Copyright (C) 2009 CodePlex Foundation
+ * Copyright (C) 2010-2013 OpenSeadragon contributors
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are
+ * met:
+ *
+ * - Redistributions of source code must retain the above copyright notice,
+ *   this list of conditions and the following disclaimer.
+ *
+ * - Redistributions in binary form must reproduce the above copyright
+ *   notice, this list of conditions and the following disclaimer in the
+ *   documentation and/or other materials provided with the distribution.
+ *
+ * - Neither the name of CodePlex Foundation nor the names of its
+ *   contributors may be used to endorse or promote products derived from
+ *   this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ * A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE COPYRIGHT
+ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED
+ * TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+ * PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+ * LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
+(function ($) {
+
+    /**
+     * @class ImageTileSource
+     * @classdesc The ImageTileSource allows a simple image to be loaded
+     * into an OpenSeadragon Viewer.
+     * There are 2 ways to open an ImageTileSource:
+     * 1. viewer.open({type: 'image', url: fooUrl});
+     * 2. viewer.open(new OpenSeadragon.ImageTileSource({url: fooUrl}));
+     *
+     * With the first syntax, the crossOriginPolicy, ajaxWithCredentials and
+     * useCanvas options are inherited from the viewer if they are not
+     * specified directly in the options object.
+     *
+     * @memberof OpenSeadragon
+     * @extends OpenSeadragon.TileSource
+     * @param {Object} options Options object.
+     * @param {String} options.url URL of the image
+     * @param {Boolean} [options.buildPyramid=true] If set to true (default), a
+     * pyramid will be built internally to provide a better downsampling.
+     * @param {String|Boolean} [options.crossOriginPolicy=false] Valid values are
+     * 'Anonymous', 'use-credentials', and false. If false, image requests will
+     * not use CORS preventing internal pyramid building for images from other
+     * domains.
+     * @param {String|Boolean} [options.ajaxWithCredentials=false] Whether to set
+     * the withCredentials XHR flag for AJAX requests (when loading tile sources).
+     * @param {Boolean} [options.useCanvas=true] Set to false to prevent any use
+     * of the canvas API.
+     */
+    $.ImageTileSource = function (options) {
+
+        options = $.extend({
+            buildPyramid: true,
+            crossOriginPolicy: false,
+            ajaxWithCredentials: false,
+            useCanvas: true
+        }, options);
+        $.TileSource.apply(this, [options]);
+
+    };
+
+    $.extend($.ImageTileSource.prototype, $.TileSource.prototype, /** @lends OpenSeadragon.ImageTileSource.prototype */{
+        /**
+         * Determine if the data and/or url imply the image service is supported by
+         * this tile source.
+         * @function
+         * @param {Object|Array} data
+         * @param {String} optional - url
+         */
+        supports: function (data, url) {
+            return data.type && data.type === "image";
+        },
+        /**
+         *
+         * @function
+         * @param {Object} options - the options
+         * @param {String} dataUrl - the url the image was retreived from, if any.
+         * @return {Object} options - A dictionary of keyword arguments sufficient
+         *      to configure this tile sources constructor.
+         */
+        configure: function (options, dataUrl) {
+            return options;
+        },
+        /**
+         * Responsible for retrieving, and caching the
+         * image metadata pertinent to this TileSources implementation.
+         * @function
+         * @param {String} url
+         * @throws {Error}
+         */
+        getImageInfo: function (url) {
+            var image = this._image = new Image();
+            var _this = this;
+
+            if (this.crossOriginPolicy) {
+                image.crossOrigin = this.crossOriginPolicy;
+            }
+            if (this.ajaxWithCredentials) {
+                image.useCredentials = this.ajaxWithCredentials;
+            }
+
+            $.addEvent(image, 'load', function () {
+                _this.width = image.naturalWidth;
+                _this.height = image.naturalHeight;
+                _this.aspectRatio = _this.width / _this.height;
+                _this.dimensions = new $.Point(_this.width, _this.height);
+                _this._tileWidth = _this.width;
+                _this._tileHeight = _this.height;
+                _this.tileOverlap = 0;
+                _this.minLevel = 0;
+                _this.levels = _this._buildLevels();
+                _this.maxLevel = _this.levels.length - 1;
+
+                _this.ready = true;
+                /**
+                 * Raised when a TileSource is opened and initialized.
+                 *
+                 * @event ready
+                 * @memberof OpenSeadragon.TileSource
+                 * @type {object}
+                 * @property {OpenSeadragon.TileSource} eventSource - A reference
+                 * to the TileSource which raised the event.
+                 * @property {Object} tileSource
+                 * @property {?Object} userData - Arbitrary subscriber-defined object.
+                 */
+                _this.raiseEvent('ready', {tileSource: _this});
+            });
+
+            $.addEvent(image, 'error', function () {
+                /***
+                 * Raised when an error occurs loading a TileSource.
+                 *
+                 * @event open-failed
+                 * @memberof OpenSeadragon.TileSource
+                 * @type {object}
+                 * @property {OpenSeadragon.TileSource} eventSource - A reference
+                 * to the TileSource which raised the event.
+                 * @property {String} message
+                 * @property {String} source
+                 * @property {?Object} userData - Arbitrary subscriber-defined object.
+                 */
+                _this.raiseEvent('open-failed', {
+                    message: "Error loading image at " + url,
+                    source: url
+                });
+            });
+
+            image.src = url;
+        },
+        /**
+         * @function
+         * @param {Number} level
+         */
+        getLevelScale: function (level) {
+            var levelScale = NaN;
+            if (level >= this.minLevel && level <= this.maxLevel) {
+                levelScale =
+                        this.levels[level].width /
+                        this.levels[this.maxLevel].width;
+            }
+            return levelScale;
+        },
+        /**
+         * @function
+         * @param {Number} level
+         */
+        getNumTiles: function (level) {
+            var scale = this.getLevelScale(level);
+            if (scale) {
+                return new $.Point(1, 1);
+            } else {
+                return new $.Point(0, 0);
+            }
+        },
+        /**
+         * @function
+         * @param {Number} level
+         * @param {OpenSeadragon.Point} point
+         */
+        getTileAtPoint: function (level, point) {
+            return new $.Point(0, 0);
+        },
+        /**
+         * Retrieves a tile url
+         * @function
+         * @param {Number} level Level of the tile
+         * @param {Number} x x coordinate of the tile
+         * @param {Number} y y coordinate of the tile
+         */
+        getTileUrl: function (level, x, y) {
+            var url = null;
+            if (level >= this.minLevel && level <= this.maxLevel) {
+                url = this.levels[level].url;
+            }
+            return url;
+        },
+        /**
+         * Retrieves a tile context 2D
+         * @function
+         * @param {Number} level Level of the tile
+         * @param {Number} x x coordinate of the tile
+         * @param {Number} y y coordinate of the tile
+         */
+        getContext2D: function (level, x, y) {
+            var context = null;
+            if (level >= this.minLevel && level <= this.maxLevel) {
+                context = this.levels[level].context2D;
+            }
+            return context;
+        },
+        /**
+         * @private Build the differents levels of the pyramid if possible
+         * (canvas API enabled and no canvas tainting issue)
+         */
+        _buildLevels: function () {
+            var levels = [{
+                    url: this._image.src,
+                    width: this._image.naturalWidth,
+                    height: this._image.naturalHeight
+                }];
+
+            if (!this.buildPyramid || !$.supportsCanvas || !this.useCanvas) {
+                // We don't need the image anymore. Allows it to be GC.
+                delete this._image;
+                return levels;
+            }
+
+            var currentWidth = this._image.naturalWidth;
+            var currentHeight = this._image.naturalHeight;
+
+            var bigCanvas = document.createElement("canvas");
+            var bigContext = bigCanvas.getContext("2d");
+
+            bigCanvas.width = currentWidth;
+            bigCanvas.height = currentHeight;
+            bigContext.drawImage(this._image, 0, 0, currentWidth, currentHeight);
+            // We cache the context of the highest level because the browser
+            // is a lot faster at downsampling something it already has
+            // downsampled before.
+            levels[0].context2D = bigContext;
+            // We don't need the image anymore. Allows it to be GC.
+            delete this._image;
+
+            if ($.isCanvasTainted(bigCanvas)) {
+                // If the canvas is tainted, we can't compute the pyramid.
+                return levels;
+            }
+
+            // We build smaller levels until either width or height becomes
+            // 1 pixel wide.
+            while (currentWidth >= 2 && currentHeight >= 2) {
+                currentWidth = Math.floor(currentWidth / 2);
+                currentHeight = Math.floor(currentHeight / 2);
+                var smallCanvas = document.createElement("canvas");
+                var smallContext = smallCanvas.getContext("2d");
+                smallCanvas.width = currentWidth;
+                smallCanvas.height = currentHeight;
+                smallContext.drawImage(bigCanvas, 0, 0, currentWidth, currentHeight);
+
+                levels.splice(0, 0, {
+                    context2D: smallContext,
+                    width: currentWidth,
+                    height: currentHeight
+                });
+
+                bigCanvas = smallCanvas;
+                bigContext = smallContext;
+            }
+            return levels;
+        }
+    });
+
+}(OpenSeadragon));
+
+/*
  * OpenSeadragon - TileSourceCollection
  *
  * Copyright (C) 2009 CodePlex Foundation
@@ -12028,7 +13345,7 @@ $.Button = function( options ) {
             return true;
         }
 
-    }).setTracking( true );
+    });
 
     outTo( this, $.ButtonState.REST );
 };
@@ -12250,7 +13567,7 @@ $.ButtonGroup = function( options ) {
      */
     this.element = options.element || $.makeNeutralElement( "div" );
 
-    // TODO What if there IS an options.group specified? 
+    // TODO What if there IS an options.group specified?
     if( !options.group ){
         this.label   = $.makeNeutralElement( "label" );
         //TODO: support labels for ButtonGroups
@@ -12287,23 +13604,7 @@ $.ButtonGroup = function( options ) {
                 }
             }
         },
-        pressHandler: function ( event ) {
-            if ( event.pointerType === 'touch' && !$.MouseTracker.haveTouchEnter ) {
-                var i;
-                for ( i = 0; i < _this.buttons.length; i++ ) {
-                    _this.buttons[ i ].notifyGroupEnter();
-                }
-            }
-        },
-        releaseHandler: function ( event ) {
-            var i;
-            if ( !event.insideElementReleased || ( event.pointerType === 'touch' && !$.MouseTracker.haveTouchEnter ) ) {
-                for ( i = 0; i < _this.buttons.length; i++ ) {
-                    _this.buttons[ i ].notifyGroupExit();
-                }
-            }
-        }
-    }).setTracking( true );
+    });
 };
 
 $.ButtonGroup.prototype = /** @lends OpenSeadragon.ButtonGroup.prototype */{
@@ -12536,6 +13837,21 @@ $.Rect.prototype = /** @lends OpenSeadragon.Rect.prototype */{
     },
 
     /**
+     * Returns the smallest rectangle that will contain this and the given rectangle.
+     * @param {OpenSeadragon.Rect} rect
+     * @return {OpenSeadragon.Rect} The new rectangle.
+     */
+    // ----------
+    union: function(rect) {
+        var left = Math.min(this.x, rect.x);
+        var top = Math.min(this.y, rect.y);
+        var right = Math.max(this.x + this.width, rect.x + rect.width);
+        var bottom = Math.max(this.y + this.height, rect.y + rect.height);
+
+        return new OpenSeadragon.Rect(left, top, right - left, bottom - top);
+    },
+
+    /**
      * Rotates a rectangle around a point. Currently only 90, 180, and 270
      * degrees are supported.
      * @function
@@ -12736,8 +14052,9 @@ $.ReferenceStrip = function ( options ) {
         scrollHandler:  $.delegate( this, onStripScroll ),
         enterHandler:   $.delegate( this, onStripEnter ),
         exitHandler:    $.delegate( this, onStripExit ),
+        keyDownHandler: $.delegate( this, onKeyDown ),
         keyHandler:     $.delegate( this, onKeyPress )
-    } ).setTracking( true );
+    } );
 
     //Controls the position and orientation of the reference strip and sets the
     //appropriate width and height
@@ -12825,7 +14142,7 @@ $.ReferenceStrip = function ( options ) {
                     viewer.goToPage( page );
                 }
             }
-        } ).setTracking( true );
+        } );
 
         this.element.appendChild( element );
 
@@ -12834,7 +14151,7 @@ $.ReferenceStrip = function ( options ) {
         this.panels.push( element );
 
     }
-    loadPanels( this, this.scroll == 'vertical' ? viewerSize.y : viewerSize.y, 0 );
+    loadPanels( this, this.scroll == 'vertical' ? viewerSize.y : viewerSize.x, 0 );
     this.setFocus( 0 );
 
 };
@@ -13064,8 +14381,10 @@ function loadPanels( strip, viewerSize, scroll ) {
             style.width         = ( strip.panelWidth - 4 ) + 'px';
             style.height        = ( strip.panelHeight - 4 ) + 'px';
 
+            // TODO: What is this for? Future keyboard navigation support?
             miniViewer.displayRegion.innerTracker = new $.MouseTracker( {
-                element: miniViewer.displayRegion
+                element: miniViewer.displayRegion,
+                startDisabled: true
             } );
 
             element.getElementsByTagName( 'div' )[0].appendChild(
@@ -13129,6 +14448,37 @@ function onStripExit( event ) {
 }
 
 
+/**
+ * @private
+ * @inner
+ * @function
+ */
+function onKeyDown( event ) {
+    //console.log( event.keyCode );
+
+    if ( !event.preventDefaultAction && !event.ctrl && !event.alt && !event.meta ) {
+        switch ( event.keyCode ) {
+            case 38: //up arrow
+                onStripScroll.call( this, { eventSource: this.tracker, position: null, scroll: 1, shift: null } );
+                return false;
+            case 40: //down arrow
+                onStripScroll.call( this, { eventSource: this.tracker, position: null, scroll: -1, shift: null } );
+                return false;
+            case 37: //left arrow
+                onStripScroll.call( this, { eventSource: this.tracker, position: null, scroll: -1, shift: null } );
+                return false;
+            case 39: //right arrow
+                onStripScroll.call( this, { eventSource: this.tracker, position: null, scroll: 1, shift: null } );
+                return false;
+            default:
+                //console.log( 'navigator keycode %s', event.keyCode );
+                return true;
+        }
+    } else {
+        return true;
+    }
+}
+
 
 /**
  * @private
@@ -13138,35 +14488,35 @@ function onStripExit( event ) {
 function onKeyPress( event ) {
     //console.log( event.keyCode );
 
-    switch ( event.keyCode ) {
-        case 61: //=|+
-            onStripScroll.call( this, { eventSource: this.tracker, position: null, scroll: 1, shift: null } );
-            return false;
-        case 45: //-|_
-            onStripScroll.call( this, { eventSource: this.tracker, position: null, scroll: -1, shift: null } );
-            return false;
-        case 48: //0|)
-        case 119: //w
-        case 87: //W
-        case 38: //up arrow
-            onStripScroll.call( this, { eventSource: this.tracker, position: null, scroll: 1, shift: null } );
-            return false;
-        case 115: //s
-        case 83: //S
-        case 40: //down arrow
-            onStripScroll.call( this, { eventSource: this.tracker, position: null, scroll: -1, shift: null } );
-            return false;
-        case 97: //a
-        case 37: //left arrow
-            onStripScroll.call( this, { eventSource: this.tracker, position: null, scroll: -1, shift: null } );
-            return false;
-        case 100: //d
-        case 39: //right arrow
-            onStripScroll.call( this, { eventSource: this.tracker, position: null, scroll: 1, shift: null } );
-            return false;
-        default:
-            //console.log( 'navigator keycode %s', event.keyCode );
-            return true;
+    if ( !event.preventDefaultAction && !event.ctrl && !event.alt && !event.meta ) {
+        switch ( event.keyCode ) {
+            case 61: //=|+
+                onStripScroll.call( this, { eventSource: this.tracker, position: null, scroll: 1, shift: null } );
+                return false;
+            case 45: //-|_
+                onStripScroll.call( this, { eventSource: this.tracker, position: null, scroll: -1, shift: null } );
+                return false;
+            case 48: //0|)
+            case 119: //w
+            case 87: //W
+                onStripScroll.call( this, { eventSource: this.tracker, position: null, scroll: 1, shift: null } );
+                return false;
+            case 115: //s
+            case 83: //S
+                onStripScroll.call( this, { eventSource: this.tracker, position: null, scroll: -1, shift: null } );
+                return false;
+            case 97: //a
+                onStripScroll.call( this, { eventSource: this.tracker, position: null, scroll: -1, shift: null } );
+                return false;
+            case 100: //d
+                onStripScroll.call( this, { eventSource: this.tracker, position: null, scroll: 1, shift: null } );
+                return false;
+            default:
+                //console.log( 'navigator keycode %s', event.keyCode );
+                return true;
+        }
+    } else {
+        return true;
     }
 }
 
@@ -13286,10 +14636,14 @@ $.extend( $.DisplayRect.prototype, $.Rect.prototype );
  * @class Spring
  * @memberof OpenSeadragon
  * @param {Object} options - Spring configuration settings.
- * @param {Number} options.initial - Initial value of spring, default to 0 so
- *  spring is not in motion initally by default.
- * @param {Number} options.springStiffness - Spring stiffness.
- * @param {Number} options.animationTime - Animation duration per spring.
+ * @param {Number} options.springStiffness - Spring stiffness. Must be greater than zero.
+ * The closer to zero, the closer to linear animation.
+ * @param {Number} options.animationTime - Animation duration per spring, in seconds.
+ * Must be greater than zero.
+ * @param {Number} [options.initial=0] - Initial value of spring.
+ * @param {Boolean} [options.exponential=false] - Whether this spring represents
+ * an exponential scale (such as zoom) and should be animated accordingly. Note that
+ * exponential springs must have non-zero values.
  */
 $.Spring = function( options ) {
     var args = arguments;
@@ -13300,7 +14654,7 @@ $.Spring = function( options ) {
         options = {
             initial: args.length && typeof ( args[ 0 ] ) == "number" ?
                 args[ 0 ] :
-                0,
+                undefined,
             /**
              * Spring stiffness.
              * @member {Number} springStiffness
@@ -13320,6 +14674,17 @@ $.Spring = function( options ) {
         };
     }
 
+    $.console.assert(typeof options.springStiffness === "number" && options.springStiffness !== 0,
+        "[OpenSeadragon.Spring] options.springStiffness must be a non-zero number");
+
+    $.console.assert(typeof options.animationTime === "number" && options.springStiffness !== 0,
+        "[OpenSeadragon.Spring] options.animationTime must be a non-zero number");
+
+    if (options.exponential) {
+        this._exponential = true;
+        delete options.exponential;
+    }
+
     $.extend( true, this, options);
 
     /**
@@ -13331,9 +14696,12 @@ $.Spring = function( options ) {
     this.current = {
         value: typeof ( this.initial ) == "number" ?
             this.initial :
-            0,
+            (this._exponential ? 0 : 1),
         time:  $.now() // always work in milliseconds
     };
+
+    $.console.assert(!this._exponential || this.current.value !== 0,
+        "[OpenSeadragon.Spring] value must be non-zero for exponential springs");
 
     /**
      * @member {Object} start
@@ -13356,6 +14724,12 @@ $.Spring = function( options ) {
         value: this.current.value,
         time:  this.current.time
     };
+
+    if (this._exponential) {
+        this.start._logValue = Math.log(this.start.value);
+        this.target._logValue = Math.log(this.target.value);
+        this.current._logValue = Math.log(this.current.value);
+    }
 };
 
 $.Spring.prototype = /** @lends OpenSeadragon.Spring.prototype */{
@@ -13365,10 +14739,17 @@ $.Spring.prototype = /** @lends OpenSeadragon.Spring.prototype */{
      * @param {Number} target
      */
     resetTo: function( target ) {
-        this.target.value = target;
-        this.target.time  = this.current.time;
-        this.start.value  = this.target.value;
-        this.start.time   = this.target.time;
+        $.console.assert(!this._exponential || target !== 0,
+            "[OpenSeadragon.Spring.resetTo] target must be non-zero for exponential springs");
+
+        this.start.value = this.target.value = this.current.value = target;
+        this.start.time = this.target.time = this.current.time = $.now();
+
+        if (this._exponential) {
+            this.start._logValue = Math.log(this.start.value);
+            this.target._logValue = Math.log(this.target.value);
+            this.current._logValue = Math.log(this.current.value);
+        }
     },
 
     /**
@@ -13376,10 +14757,18 @@ $.Spring.prototype = /** @lends OpenSeadragon.Spring.prototype */{
      * @param {Number} target
      */
     springTo: function( target ) {
+        $.console.assert(!this._exponential || target !== 0,
+            "[OpenSeadragon.Spring.springTo] target must be non-zero for exponential springs");
+
         this.start.value  = this.current.value;
         this.start.time   = this.current.time;
         this.target.value = target;
         this.target.time  = this.start.time + 1000 * this.animationTime;
+
+        if (this._exponential) {
+            this.start._logValue = Math.log(this.start.value);
+            this.target._logValue = Math.log(this.target.value);
+        }
     },
 
     /**
@@ -13389,6 +14778,27 @@ $.Spring.prototype = /** @lends OpenSeadragon.Spring.prototype */{
     shiftBy: function( delta ) {
         this.start.value  += delta;
         this.target.value += delta;
+
+        if (this._exponential) {
+            $.console.assert(this.target.value !== 0 && this.start.value !== 0,
+                "[OpenSeadragon.Spring.shiftBy] spring value must be non-zero for exponential springs");
+
+            this.start._logValue = Math.log(this.start.value);
+            this.target._logValue = Math.log(this.target.value);
+        }
+    },
+
+    setExponential: function(value) {
+        this._exponential = value;
+
+        if (this._exponential) {
+            $.console.assert(this.current.value !== 0 && this.target.value !== 0 && this.start.value !== 0,
+                "[OpenSeadragon.Spring.setExponential] spring value must be non-zero for exponential springs");
+
+            this.start._logValue = Math.log(this.start.value);
+            this.target._logValue = Math.log(this.target.value);
+            this.current._logValue = Math.log(this.current.value);
+        }
     },
 
     /**
@@ -13396,15 +14806,31 @@ $.Spring.prototype = /** @lends OpenSeadragon.Spring.prototype */{
      */
     update: function() {
         this.current.time  = $.now();
-        this.current.value = (this.current.time >= this.target.time) ?
-            this.target.value :
-            this.start.value +
-                ( this.target.value - this.start.value ) *
+
+        var startValue, targetValue;
+        if (this._exponential) {
+            startValue = this.start._logValue;
+            targetValue = this.target._logValue;
+        } else {
+            startValue = this.start.value;
+            targetValue = this.target.value;
+        }
+
+        var currentValue = (this.current.time >= this.target.time) ?
+            targetValue :
+            startValue +
+                ( targetValue - startValue ) *
                 transform(
                     this.springStiffness,
                     ( this.current.time - this.start.time ) /
                     ( this.target.time  - this.start.time )
                 );
+
+        if (this._exponential) {
+            this.current.value = Math.exp(currentValue);
+        } else {
+            this.current.value = currentValue;
+        }
     }
 };
 
@@ -13471,6 +14897,7 @@ function ImageJob ( options ) {
 }
 
 ImageJob.prototype = {
+    errorMsg: null,
     start: function(){
         var _this = this;
 
@@ -13484,10 +14911,12 @@ ImageJob.prototype = {
             _this.finish( true );
         };
         this.image.onabort = this.image.onerror = function(){
+            _this.errorMsg = "Image load aborted";
             _this.finish( false );
         };
 
         this.jobId = window.setTimeout( function(){
+            _this.errorMsg = "Image load exceeded timeout";
             _this.finish( false );
         }, this.timeout);
 
@@ -13514,14 +14943,16 @@ ImageJob.prototype = {
  * @memberof OpenSeadragon
  * @classdesc Handles downloading of a set of images using asynchronous queue pattern.
  * You generally won't have to interact with the ImageLoader directly.
+ * @param {Object} options - Options for this ImageLoader.
+ * @param {Number} [options.jobLimit] - The number of concurrent image requests. See imageLoaderLimit in {@link OpenSeadragon.Options} for details.
  */
-$.ImageLoader = function() {
+$.ImageLoader = function( options ) {
 
     $.extend( true, this, {
         jobLimit:       $.DEFAULT_SETTINGS.imageLoaderLimit,
         jobQueue:       [],
         jobsInProgress: 0
-    });
+    }, options );
 
 };
 
@@ -13542,7 +14973,8 @@ $.ImageLoader.prototype = /** @lends OpenSeadragon.ImageLoader.prototype */{
             jobOptions = {
                 src: options.src,
                 crossOriginPolicy: options.crossOriginPolicy,
-                callback: complete
+                callback: complete,
+                abort: options.abort
             },
             newJob = new ImageJob( jobOptions );
 
@@ -13551,7 +14983,7 @@ $.ImageLoader.prototype = /** @lends OpenSeadragon.ImageLoader.prototype */{
             this.jobsInProgress++;
         }
         else {
-           this.jobQueue.push( newJob );
+            this.jobQueue.push( newJob );
         }
     },
 
@@ -13560,6 +14992,13 @@ $.ImageLoader.prototype = /** @lends OpenSeadragon.ImageLoader.prototype */{
      * @method
      */
     clear: function() {
+        for( var i = 0; i < this.jobQueue.length; i++ ) {
+            var job = this.jobQueue[i];
+            if ( typeof job.abort === "function" ) {
+                job.abort();
+            }
+        }
+
         this.jobQueue = [];
     }
 };
@@ -13580,13 +15019,13 @@ function completeJob( loader, job, callback ) {
     if ( (!loader.jobLimit || loader.jobsInProgress < loader.jobLimit) && loader.jobQueue.length > 0) {
         nextJob = loader.jobQueue.shift();
         nextJob.start();
+        loader.jobsInProgress++;
     }
 
-    callback( job.image );
+    callback( job.image, job.errorMsg );
 }
 
 }( OpenSeadragon ));
-
 
 /*
  * OpenSeadragon - Tile
@@ -13635,8 +15074,10 @@ function completeJob( loader, job, callback ) {
  * @param {Boolean} exists Is this tile a part of a sparse image? ( Also has
  *      this tile failed to load? )
  * @param {String} url The URL of this tile's image.
+ * @param {CanvasRenderingContext2D} context2D The context2D of this tile if it
+ * is provided directly by the tile source.
  */
-$.Tile = function(level, x, y, bounds, exists, url) {
+$.Tile = function(level, x, y, bounds, exists, url, context2D) {
     /**
      * The zoom level this tile belongs to.
      * @member {Number} level
@@ -13657,7 +15098,7 @@ $.Tile = function(level, x, y, bounds, exists, url) {
     this.y       = y;
     /**
      * Where this tile fits, in normalized coordinates
-     * @member {OpenSeadragon.Point} bounds
+     * @member {OpenSeadragon.Rect} bounds
      * @memberof OpenSeadragon.Tile#
      */
     this.bounds  = bounds;
@@ -13673,6 +15114,12 @@ $.Tile = function(level, x, y, bounds, exists, url) {
      * @memberof OpenSeadragon.Tile#
      */
     this.url     = url;
+    /**
+     * The context2D of this tile if it is provided directly by the tile source.
+     * @member {CanvasRenderingContext2D} context2D
+     * @memberOf OpenSeadragon.Tile#
+     */
+    this.context2D = context2D;
     /**
      * Is this tile loaded?
      * @member {Boolean} loaded
@@ -13780,7 +15227,14 @@ $.Tile.prototype = /** @lends OpenSeadragon.Tile.prototype */{
      * @param {Element} container
      */
     drawHTML: function( container ) {
-        if ( !this.loaded || !this.image ) {
+        if (!this.cacheImageRecord) {
+            $.console.warn(
+                '[Tile.drawHTML] attempting to draw tile %s when it\'s not cached',
+                this.toString());
+            return;
+        }
+
+        if ( !this.loaded ) {
             $.console.warn(
                 "Attempting to draw tile %s when it's not yet loaded.",
                 this.toString()
@@ -13793,8 +15247,7 @@ $.Tile.prototype = /** @lends OpenSeadragon.Tile.prototype */{
 
         if ( !this.element ) {
             this.element                              = $.makeNeutralElement( "div" );
-            this.imgElement                           = $.makeNeutralElement( "img" );
-            this.imgElement.src                       = this.url;
+            this.imgElement                           = this.cacheImageRecord.getImage().cloneNode();
             this.imgElement.style.msInterpolationMode = "nearest-neighbor";
             this.imgElement.style.width               = "100%";
             this.imgElement.style.height              = "100%";
@@ -13829,17 +15282,18 @@ $.Tile.prototype = /** @lends OpenSeadragon.Tile.prototype */{
 
         var position = this.position,
             size     = this.size,
-            rendered,
-            canvas;
+            rendered;
 
-        if (!this.cacheImageRecord) {
-            $.console.warn('[Tile.drawCanvas] attempting to draw tile %s when it\'s not cached', this.toString());
+        if (!this.context2D && !this.cacheImageRecord) {
+            $.console.warn(
+                '[Tile.drawCanvas] attempting to draw tile %s when it\'s not cached',
+                this.toString());
             return;
         }
 
-        rendered = this.cacheImageRecord.getRenderedContext();
+        rendered = this.context2D || this.cacheImageRecord.getRenderedContext();
 
-        if ( !this.loaded || !( this.image || rendered) ){
+        if ( !this.loaded || !rendered ){
             $.console.warn(
                 "Attempting to draw tile %s when it's not yet loaded.",
                 this.toString()
@@ -13848,37 +15302,29 @@ $.Tile.prototype = /** @lends OpenSeadragon.Tile.prototype */{
             return;
         }
 
+        context.save();
+
         context.globalAlpha = this.opacity;
 
         //if we are supposed to be rendering fully opaque rectangle,
         //ie its done fading or fading is turned off, and if we are drawing
         //an image with an alpha channel, then the only way
         //to avoid seeing the tile underneath is to clear the rectangle
-        if( context.globalAlpha == 1 && this.url.match('.png') ){
+        if (context.globalAlpha === 1 &&
+                (this.context2D || this.url.match('.png'))) {
             //clearing only the inside of the rectangle occupied
             //by the png prevents edge flikering
             context.clearRect(
-                position.x+1,
-                position.y+1,
-                size.x-2,
-                size.y-2
+                (position.x * $.pixelDensityRatio)+1,
+                (position.y * $.pixelDensityRatio)+1,
+                (size.x * $.pixelDensityRatio)-2,
+                (size.y * $.pixelDensityRatio)-2
             );
 
         }
 
-        if(!rendered){
-            canvas = document.createElement( 'canvas' );
-            canvas.width = this.image.width;
-            canvas.height = this.image.height;
-            rendered = canvas.getContext('2d');
-            rendered.drawImage( this.image, 0, 0 );
-            this.cacheImageRecord.setRenderedContext(rendered);
-            //since we are caching the prerendered image on a canvas
-            //allow the image to not be held in memory
-            this.image = null;
-        }
-
-        // This gives the application a chance to make image manipulation changes as we are rendering the image
+        // This gives the application a chance to make image manipulation
+        // changes as we are rendering the image
         drawingHandler({context: context, tile: this, rendered: rendered});
 
         context.drawImage(
@@ -13887,11 +15333,13 @@ $.Tile.prototype = /** @lends OpenSeadragon.Tile.prototype */{
             0,
             rendered.canvas.width,
             rendered.canvas.height,
-            position.x,
-            position.y,
-            size.x,
-            size.y
+            position.x * $.pixelDensityRatio,
+            position.y * $.pixelDensityRatio,
+            size.x * $.pixelDensityRatio,
+            size.y * $.pixelDensityRatio
         );
+
+        context.restore();
     },
 
     /**
@@ -13908,7 +15356,6 @@ $.Tile.prototype = /** @lends OpenSeadragon.Tile.prototype */{
 
         this.element    = null;
         this.imgElement = null;
-        this.image      = null;
         this.loaded     = false;
         this.loading    = false;
     }
@@ -14168,8 +15615,8 @@ $.Tile.prototype = /** @lends OpenSeadragon.Tile.prototype */{
 
             this.adjust( position, size );
 
-            position = position.apply( Math.floor );
-            size     = size.apply( Math.ceil );
+            position = position.apply( Math.round );
+            size     = size.apply( Math.round );
 
             // rotate the position of the overlay
             // TODO only rotate overlays if in canvas mode
@@ -14200,7 +15647,10 @@ $.Tile.prototype = /** @lends OpenSeadragon.Tile.prototype */{
                 style.left     = position.x + "px";
                 style.top      = position.y + "px";
                 style.position = "absolute";
-                style.display  = 'block';
+
+                if (style.display != 'none') {
+                    style.display  = 'block';
+                }
 
                 if ( scales ) {
                     style.width  = size.x + "px";
@@ -14276,11 +15726,9 @@ $.Tile.prototype = /** @lends OpenSeadragon.Tile.prototype */{
  * @param {OpenSeadragon.Viewer} options.viewer - The Viewer that owns this Drawer.
  * @param {OpenSeadragon.Viewport} options.viewport - Reference to Viewer viewport.
  * @param {Element} options.element - Parent element.
- * @param {Number} [options.opacity=1] - See opacity in {@link OpenSeadragon.Options} for details.
  * @param {Number} [options.debugGridColor] - See debugGridColor in {@link OpenSeadragon.Options} for details.
  */
 $.Drawer = function( options ) {
-    var _this = this;
 
     $.console.assert( options.viewer, "[Drawer] options.viewer is required" );
 
@@ -14306,7 +15754,9 @@ $.Drawer = function( options ) {
     this.viewer = options.viewer;
     this.viewport = options.viewport;
     this.debugGridColor = options.debugGridColor || $.DEFAULT_SETTINGS.debugGridColor;
-    this.opacity = options.opacity === undefined ? $.DEFAULT_SETTINGS.opacity : options.opacity;
+    if (options.opacity) {
+        $.console.error( "[Drawer] options.opacity is no longer accepted; set the opacity on the TiledImage instead" );
+    }
 
     this.useCanvas  = $.supportsCanvas && ( this.viewer ? this.viewer.useCanvas : true );
     /**
@@ -14331,6 +15781,13 @@ $.Drawer = function( options ) {
     this.context    = this.useCanvas ? this.canvas.getContext( "2d" ) : null;
 
     /**
+     * Sketch canvas used to temporarily draw tiles which cannot be drawn directly
+     * to the main canvas due to opacity. Lazily initialized.
+     */
+    this.sketchCanvas = null;
+    this.sketchContext = null;
+
+    /**
      * @member {Element} element
      * @memberof OpenSeadragon.Drawer#
      * @deprecated Alias for {@link OpenSeadragon.Drawer#container}.
@@ -14341,6 +15798,13 @@ $.Drawer = function( options ) {
     // This issue only affects our canvas renderer, but we do it always for consistency.
     // Note that this means overlays you want to be rtl need to be explicitly set to rtl.
     this.container.dir = 'ltr';
+
+    // check canvas available width and height, set canvas width and height such that the canvas backing store is set to the proper pixel density
+    if (this.useCanvas) {
+        var viewportSize = this._calculateCanvasSize();
+        this.canvas.width = viewportSize.x;
+        this.canvas.height = viewportSize.y;
+    }
 
     this.canvas.style.width     = "100%";
     this.canvas.style.height    = "100%";
@@ -14387,8 +15851,11 @@ $.Drawer.prototype = /** @lends OpenSeadragon.Drawer.prototype */{
      * @return {OpenSeadragon.Drawer} Chainable.
      */
     setOpacity: function( opacity ) {
-        this.opacity = opacity;
-        $.setElementOpacity( this.canvas, this.opacity, true );
+        $.console.error("drawer.setOpacity is deprecated. Use tiledImage.setOpacity instead.");
+        var world = this.viewer.world;
+        for (var i = 0; i < world.getItemCount(); i++) {
+            world.getItemAt( i ).setOpacity( opacity );
+        }
         return this;
     },
 
@@ -14397,7 +15864,16 @@ $.Drawer.prototype = /** @lends OpenSeadragon.Drawer.prototype */{
      * @returns {Number}
      */
     getOpacity: function() {
-        return this.opacity;
+        $.console.error("drawer.getOpacity is deprecated. Use tiledImage.getOpacity instead.");
+        var world = this.viewer.world;
+        var maxOpacity = 0;
+        for (var i = 0; i < world.getItemCount(); i++) {
+            var opacity = world.getItemAt( i ).getOpacity();
+            if ( opacity > maxOpacity ) {
+                maxOpacity = opacity;
+            }
+        }
+        return maxOpacity;
     },
 
     // deprecated
@@ -14441,6 +15917,8 @@ $.Drawer.prototype = /** @lends OpenSeadragon.Drawer.prototype */{
         //force unloading of current canvas (1x1 will be gc later, trick not necessarily needed)
         this.canvas.width  = 1;
         this.canvas.height = 1;
+        this.sketchCanvas = null;
+        this.sketchContext = null;
     },
 
     /**
@@ -14449,14 +15927,44 @@ $.Drawer.prototype = /** @lends OpenSeadragon.Drawer.prototype */{
     clear: function() {
         this.canvas.innerHTML = "";
         if ( this.useCanvas ) {
-            var viewportSize = this.viewport.getContainerSize();
+            var viewportSize = this._calculateCanvasSize();
             if( this.canvas.width != viewportSize.x ||
                 this.canvas.height != viewportSize.y ) {
                 this.canvas.width = viewportSize.x;
                 this.canvas.height = viewportSize.y;
+                if ( this.sketchCanvas !== null ) {
+                    this.sketchCanvas.width = this.canvas.width;
+                    this.sketchCanvas.height = this.canvas.height;
+                }
             }
-            this.context.clearRect( 0, 0, viewportSize.x, viewportSize.y );
+            this._clear();
         }
+    },
+
+    _clear: function ( useSketch ) {
+        if ( !this.useCanvas ) {
+            return;
+        }
+        var context = this._getContext( useSketch );
+        var canvas = context.canvas;
+        context.clearRect( 0, 0, canvas.width, canvas.height );
+    },
+
+    /**
+     * Translates from OpenSeadragon viewer rectangle to drawer rectangle.
+     * @param {OpenSeadragon.Rect} rectangle - The rectangle in viewport coordinate system.
+     * @return {OpenSeadragon.Rect} Rectangle in drawer coordinate system.
+     */
+    viewportToDrawerRectangle: function(rectangle) {
+        var topLeft = this.viewport.pixelFromPoint(rectangle.getTopLeft(), true);
+        var size = this.viewport.deltaPixelsFromPoints(rectangle.getSize(), true);
+
+        return new $.Rect(
+            topLeft.x * $.pixelDensityRatio,
+            topLeft.y * $.pixelDensityRatio,
+            size.x    * $.pixelDensityRatio,
+            size.y    * $.pixelDensityRatio
+        );
     },
 
     /**
@@ -14464,145 +15972,230 @@ $.Drawer.prototype = /** @lends OpenSeadragon.Drawer.prototype */{
      * @param {OpenSeadragon.Tile} tile - The tile to draw.
      * @param {Function} drawingHandler - Method for firing the drawing event if using canvas.
      * drawingHandler({context, tile, rendered})
+     * @param {Boolean} useSketch - Whether to use the sketch canvas or not.
      * where <code>rendered</code> is the context with the pre-drawn image.
      */
-    drawTile: function( tile, drawingHandler ) {
+    drawTile: function( tile, drawingHandler, useSketch ) {
         $.console.assert(tile, '[Drawer.drawTile] tile is required');
         $.console.assert(drawingHandler, '[Drawer.drawTile] drawingHandler is required');
 
         if ( this.useCanvas ) {
+            var context = this._getContext( useSketch );
             // TODO do this in a more performant way
             // specifically, don't save,rotate,restore every time we draw a tile
             if( this.viewport.degrees !== 0 ) {
-                this._offsetForRotation( tile, this.viewport.degrees );
-                tile.drawCanvas( this.context, drawingHandler );
-                this._restoreRotationChanges( tile );
+                this._offsetForRotation( tile, this.viewport.degrees, useSketch );
+                tile.drawCanvas( context, drawingHandler );
+                this._restoreRotationChanges( tile, useSketch );
             } else {
-                tile.drawCanvas( this.context, drawingHandler );
+                tile.drawCanvas( context, drawingHandler );
             }
         } else {
             tile.drawHTML( this.canvas );
         }
     },
 
+    _getContext: function( useSketch ) {
+        var context = this.context;
+        if ( useSketch ) {
+            if (this.sketchCanvas === null) {
+                this.sketchCanvas = document.createElement( "canvas" );
+                this.sketchCanvas.width = this.canvas.width;
+                this.sketchCanvas.height = this.canvas.height;
+                this.sketchContext = this.sketchCanvas.getContext( "2d" );
+            }
+            context = this.sketchContext;
+        }
+        return context;
+    },
+
+    // private
+    saveContext: function( useSketch ) {
+        if (!this.useCanvas) {
+            return;
+        }
+
+        this._getContext( useSketch ).save();
+    },
+
+    // private
+    restoreContext: function( useSketch ) {
+        if (!this.useCanvas) {
+            return;
+        }
+
+        this._getContext( useSketch ).restore();
+    },
+
+    // private
+    setClip: function(rect, useSketch) {
+        if (!this.useCanvas) {
+            return;
+        }
+
+        var context = this._getContext( useSketch );
+        context.beginPath();
+        context.rect(rect.x, rect.y, rect.width, rect.height);
+        context.clip();
+    },
+
+    // private
+    drawRectangle: function(rect, fillStyle, useSketch) {
+        if (!this.useCanvas) {
+            return;
+        }
+
+        var context = this._getContext( useSketch );
+        context.save();
+        context.fillStyle = fillStyle;
+        context.fillRect(rect.x, rect.y, rect.width, rect.height);
+        context.restore();
+    },
+
+    /**
+     * Blends the sketch canvas in the main canvas.
+     * @param {Float} opacity The opacity of the blending.
+     * @returns {undefined}
+     */
+    blendSketch: function(opacity) {
+        if (!this.useCanvas || !this.sketchCanvas) {
+            return;
+        }
+
+        this.context.save();
+        this.context.globalAlpha = opacity;
+        this.context.drawImage(this.sketchCanvas, 0, 0);
+        this.context.restore();
+    },
+
     // private
     drawDebugInfo: function( tile, count, i ){
-        if ( this.useCanvas ) {
-            this.context.save();
-            this.context.lineWidth = 2;
-            this.context.font = 'small-caps bold 13px ariel';
-            this.context.strokeStyle = this.debugGridColor;
-            this.context.fillStyle = this.debugGridColor;
-
-            this._offsetForRotation( tile, this.canvas, this.context, this.viewport.degrees );
-
-            this.context.strokeRect(
-                tile.position.x,
-                tile.position.y,
-                tile.size.x,
-                tile.size.y
-            );
-
-            var tileCenterX = tile.position.x + (tile.size.x / 2);
-            var tileCenterY = tile.position.y + (tile.size.y / 2);
-
-            // Rotate the text the right way around.
-            this.context.translate( tileCenterX, tileCenterY );
-            this.context.rotate( Math.PI / 180 * -this.viewport.degrees );
-            this.context.translate( -tileCenterX, -tileCenterY );
-
-            if( tile.x === 0 && tile.y === 0 ){
-                this.context.fillText(
-                    "Zoom: " + this.viewport.getZoom(),
-                    tile.position.x,
-                    tile.position.y - 30
-                );
-                this.context.fillText(
-                    "Pan: " + this.viewport.getBounds().toString(),
-                    tile.position.x,
-                    tile.position.y - 20
-                );
-            }
-            this.context.fillText(
-                "Level: " + tile.level,
-                tile.position.x + 10,
-                tile.position.y + 20
-            );
-            this.context.fillText(
-                "Column: " + tile.x,
-                tile.position.x + 10,
-                tile.position.y + 30
-            );
-            this.context.fillText(
-                "Row: " + tile.y,
-                tile.position.x + 10,
-                tile.position.y + 40
-            );
-            this.context.fillText(
-                "Order: " + i + " of " + count,
-                tile.position.x + 10,
-                tile.position.y + 50
-            );
-            this.context.fillText(
-                "Size: " + tile.size.toString(),
-                tile.position.x + 10,
-                tile.position.y + 60
-            );
-            this.context.fillText(
-                "Position: " + tile.position.toString(),
-                tile.position.x + 10,
-                tile.position.y + 70
-            );
-            this._restoreRotationChanges( tile, this.canvas, this.context );
-            this.context.restore();
+        if ( !this.useCanvas ) {
+            return;
         }
+
+        var context = this.context;
+        context.save();
+        context.lineWidth = 2 * $.pixelDensityRatio;
+        context.font = 'small-caps bold ' + (13 * $.pixelDensityRatio) + 'px arial';
+        context.strokeStyle = this.debugGridColor;
+        context.fillStyle = this.debugGridColor;
+
+        if ( this.viewport.degrees !== 0 ) {
+            this._offsetForRotation( tile, this.viewport.degrees );
+        }
+
+        context.strokeRect(
+            tile.position.x * $.pixelDensityRatio,
+            tile.position.y * $.pixelDensityRatio,
+            tile.size.x * $.pixelDensityRatio,
+            tile.size.y * $.pixelDensityRatio
+        );
+
+        var tileCenterX = (tile.position.x + (tile.size.x / 2)) * $.pixelDensityRatio;
+        var tileCenterY = (tile.position.y + (tile.size.y / 2)) * $.pixelDensityRatio;
+
+        // Rotate the text the right way around.
+        context.translate( tileCenterX, tileCenterY );
+        context.rotate( Math.PI / 180 * -this.viewport.degrees );
+        context.translate( -tileCenterX, -tileCenterY );
+
+        if( tile.x === 0 && tile.y === 0 ){
+            context.fillText(
+                "Zoom: " + this.viewport.getZoom(),
+                tile.position.x * $.pixelDensityRatio,
+                (tile.position.y - 30) * $.pixelDensityRatio
+            );
+            context.fillText(
+                "Pan: " + this.viewport.getBounds().toString(),
+                tile.position.x * $.pixelDensityRatio,
+                (tile.position.y - 20) * $.pixelDensityRatio
+            );
+        }
+        context.fillText(
+            "Level: " + tile.level,
+            (tile.position.x + 10) * $.pixelDensityRatio,
+            (tile.position.y + 20) * $.pixelDensityRatio
+        );
+        context.fillText(
+            "Column: " + tile.x,
+            (tile.position.x + 10) * $.pixelDensityRatio,
+            (tile.position.y + 30) * $.pixelDensityRatio
+        );
+        context.fillText(
+            "Row: " + tile.y,
+            (tile.position.x + 10) * $.pixelDensityRatio,
+            (tile.position.y + 40) * $.pixelDensityRatio
+        );
+        context.fillText(
+            "Order: " + i + " of " + count,
+            (tile.position.x + 10) * $.pixelDensityRatio,
+            (tile.position.y + 50) * $.pixelDensityRatio
+        );
+        context.fillText(
+            "Size: " + tile.size.toString(),
+            (tile.position.x + 10) * $.pixelDensityRatio,
+            (tile.position.y + 60) * $.pixelDensityRatio
+        );
+        context.fillText(
+            "Position: " + tile.position.toString(),
+            (tile.position.x + 10) * $.pixelDensityRatio,
+            (tile.position.y + 70) * $.pixelDensityRatio
+        );
+
+        if ( this.viewport.degrees !== 0 ) {
+            this._restoreRotationChanges( tile );
+        }
+        context.restore();
     },
 
     // private
     debugRect: function(rect) {
         if ( this.useCanvas ) {
-            this.context.save();
-            this.context.lineWidth = 2;
-            this.context.strokeStyle = this.debugGridColor;
-            this.context.fillStyle = this.debugGridColor;
+            var context = this.context;
+            context.save();
+            context.lineWidth = 2 * $.pixelDensityRatio;
+            context.strokeStyle = this.debugGridColor;
+            context.fillStyle = this.debugGridColor;
 
-            this.context.strokeRect(
-                rect.x,
-                rect.y,
-                rect.width,
-                rect.height
+            context.strokeRect(
+                rect.x * $.pixelDensityRatio,
+                rect.y * $.pixelDensityRatio,
+                rect.width * $.pixelDensityRatio,
+                rect.height * $.pixelDensityRatio
             );
 
-            this.context.restore();
+            context.restore();
         }
     },
 
     // private
-    _offsetForRotation: function( tile, degrees ){
+    _offsetForRotation: function( tile, degrees, useSketch ){
         var cx = this.canvas.width / 2,
-            cy = this.canvas.height / 2,
-            px = tile.position.x - cx,
-            py = tile.position.y - cy;
+            cy = this.canvas.height / 2;
 
-        this.context.save();
+        var context = this._getContext( useSketch );
+        context.save();
 
-        this.context.translate(cx, cy);
-        this.context.rotate( Math.PI / 180 * degrees);
-        tile.position.x = px;
-        tile.position.y = py;
+        context.translate(cx, cy);
+        context.rotate( Math.PI / 180 * degrees);
+        context.translate(-cx, -cy);
     },
 
     // private
-    _restoreRotationChanges: function( tile ){
-        var cx = this.canvas.width / 2,
-            cy = this.canvas.height / 2,
-            px = tile.position.x + cx,
-            py = tile.position.y + cy;
+    _restoreRotationChanges: function( tile, useSketch ){
+        var context = this._getContext( useSketch );
+        context.restore();
+    },
 
-        tile.position.x = px;
-        tile.position.y = py;
-
-        this.context.restore();
+    // private
+    _calculateCanvasSize: function() {
+        var pixelDensityRatio = $.pixelDensityRatio;
+        var viewportSize = this.viewport.getContainerSize();
+        return {
+            x: viewportSize.x * pixelDensityRatio,
+            y: viewportSize.y * pixelDensityRatio
+        };
     }
 };
 
@@ -14721,10 +16314,7 @@ $.Viewport = function( options ) {
 
     }, options );
 
-    this._containerInnerSize = new $.Point(
-        Math.max(1, this.containerSize.x - (this._margins.left + this._margins.right)),
-        Math.max(1, this.containerSize.y - (this._margins.top + this._margins.bottom))
-    );
+    this._updateContainerInnerSize();
 
     this.centerSpringX = new $.Spring({
         initial: 0,
@@ -14737,10 +16327,15 @@ $.Viewport = function( options ) {
         animationTime:   this.animationTime
     });
     this.zoomSpring    = new $.Spring({
+        exponential: true,
         initial: 1,
         springStiffness: this.springStiffness,
         animationTime:   this.animationTime
     });
+
+    this._oldCenterX = this.centerSpringX.current.value;
+    this._oldCenterY = this.centerSpringY.current.value;
+    this._oldZoom    = this.zoomSpring.current.value;
 
     if (this.contentSize) {
         this.resetContentSize( this.contentSize );
@@ -14840,7 +16435,16 @@ $.Viewport.prototype = /** @lends OpenSeadragon.Viewport.prototype */{
      * @function
      */
     getHomeBounds: function() {
-        return this.homeBounds.clone();
+        var center = this.homeBounds.getCenter( ),
+            width  = 1.0 / this.getHomeZoom( ),
+            height = width / this.getAspectRatio();
+
+        return new $.Rect(
+            center.x - ( width / 2.0 ),
+            center.y - ( height / 2.0 ),
+            width,
+            height
+        );
     },
 
     /**
@@ -14876,7 +16480,7 @@ $.Viewport.prototype = /** @lends OpenSeadragon.Viewport.prototype */{
             this.minZoomLevel :
                 this.minZoomImageRatio * homeZoom;
 
-        return Math.min( zoom, homeZoom );
+        return zoom;
     },
 
     /**
@@ -14908,6 +16512,34 @@ $.Viewport.prototype = /** @lends OpenSeadragon.Viewport.prototype */{
             this.containerSize.x,
             this.containerSize.y
         );
+    },
+
+    /**
+     * @function
+     * The margins push the "home" region in from the sides by the specified amounts.
+     * @returns {Object} Properties (Numbers, in screen coordinates): left, top, right, bottom.
+     */
+    getMargins: function() {
+        return $.extend({}, this._margins); // Make a copy so we are not returning our original
+    },
+
+    /**
+     * @function
+     * The margins push the "home" region in from the sides by the specified amounts.
+     * @param {Object} margins - Properties (Numbers, in screen coordinates): left, top, right, bottom.
+     */
+    setMargins: function(margins) {
+        $.console.assert($.type(margins) === 'object', '[Viewport.setMargins] margins must be an object');
+
+        this._margins = $.extend({
+            left: 0,
+            top: 0,
+            right: 0,
+            bottom: 0
+        }, margins);
+
+        this._updateContainerInnerSize();
+        this.viewer.forceRedraw();
     },
 
     /**
@@ -15185,10 +16817,17 @@ $.Viewport.prototype = /** @lends OpenSeadragon.Viewport.prototype */{
             }
 
             newBounds = this._applyBoundaryConstraints( newBounds, immediately );
+            center = newBounds.getCenter();
         }
 
-        if ( newZoom == oldZoom || newBounds.width == oldBounds.width ) {
-            return this.panTo( constraints ? newBounds.getCenter() : center, immediately );
+        if (immediately) {
+            this.panTo( center, true );
+            return this.zoomTo(newZoom, null, true);
+        }
+
+        if (Math.abs(newZoom - oldZoom) < 0.00000001 ||
+                Math.abs(newBounds.width - oldBounds.width) < 0.00000001) {
+            return this.panTo( center, immediately );
         }
 
         referencePoint = oldBounds.getTopLeft().times(
@@ -15419,10 +17058,7 @@ $.Viewport.prototype = /** @lends OpenSeadragon.Viewport.prototype */{
         this.containerSize.x = newContainerSize.x;
         this.containerSize.y = newContainerSize.y;
 
-        this._containerInnerSize = new $.Point(
-            Math.max(1, newContainerSize.x - (this._margins.left + this._margins.right)),
-            Math.max(1, newContainerSize.y - (this._margins.top + this._margins.bottom))
-        );
+        this._updateContainerInnerSize();
 
         if ( maintain ) {
             // TODO: widthDeltaFactor will always be 1; probably not what's intended
@@ -15452,14 +17088,19 @@ $.Viewport.prototype = /** @lends OpenSeadragon.Viewport.prototype */{
         return this.fitBounds( newBounds, true );
     },
 
+    // private
+    _updateContainerInnerSize: function() {
+        this._containerInnerSize = new $.Point(
+            Math.max(1, this.containerSize.x - (this._margins.left + this._margins.right)),
+            Math.max(1, this.containerSize.y - (this._margins.top + this._margins.bottom))
+        );
+    },
+
     /**
      * @function
      */
     update: function() {
-        var oldCenterX = this.centerSpringX.current.value,
-            oldCenterY = this.centerSpringY.current.value,
-            oldZoom    = this.zoomSpring.current.value,
-            oldZoomPixel,
+        var oldZoomPixel,
             newZoomPixel,
             deltaZoomPixels,
             deltaZoomPoints;
@@ -15470,7 +17111,7 @@ $.Viewport.prototype = /** @lends OpenSeadragon.Viewport.prototype */{
 
         this.zoomSpring.update();
 
-        if (this.zoomPoint && this.zoomSpring.current.value != oldZoom) {
+        if (this.zoomPoint && this.zoomSpring.current.value != this._oldZoom) {
             newZoomPixel    = this.pixelFromPoint( this.zoomPoint, true );
             deltaZoomPixels = newZoomPixel.minus( oldZoomPixel );
             deltaZoomPoints = this.deltaPointsFromPixels( deltaZoomPixels, true );
@@ -15484,9 +17125,15 @@ $.Viewport.prototype = /** @lends OpenSeadragon.Viewport.prototype */{
         this.centerSpringX.update();
         this.centerSpringY.update();
 
-        return this.centerSpringX.current.value != oldCenterX ||
-            this.centerSpringY.current.value != oldCenterY ||
-            this.zoomSpring.current.value != oldZoom;
+        var changed = this.centerSpringX.current.value != this._oldCenterX ||
+            this.centerSpringY.current.value != this._oldCenterY ||
+            this.zoomSpring.current.value != this._oldZoom;
+
+        this._oldCenterX = this.centerSpringX.current.value;
+        this._oldCenterY = this.centerSpringY.current.value;
+        this._oldZoom    = this.zoomSpring.current.value;
+
+        return changed;
     },
 
 
@@ -15886,6 +17533,9 @@ $.Viewport.prototype = /** @lends OpenSeadragon.Viewport.prototype */{
  * @param {Number} [options.y=0] - Top position, in viewport coordinates.
  * @param {Number} [options.width=1] - Width, in viewport coordinates.
  * @param {Number} [options.height] - Height, in viewport coordinates.
+ * @param {OpenSeadragon.Rect} [options.clip] - An area, in image pixels, to clip to
+ * (portions of the image outside of this area will not be visible). Only works on
+ * browsers that support the HTML5 canvas.
  * @param {Number} [options.springStiffness] - See {@link OpenSeadragon.Options}.
  * @param {Boolean} [options.animationTime] - See {@link OpenSeadragon.Options}.
  * @param {Number} [options.minZoomImageRatio] - See {@link OpenSeadragon.Options}.
@@ -15895,7 +17545,9 @@ $.Viewport.prototype = /** @lends OpenSeadragon.Viewport.prototype */{
  * @param {Number} [options.blendTime] - See {@link OpenSeadragon.Options}.
  * @param {Boolean} [options.alwaysBlend] - See {@link OpenSeadragon.Options}.
  * @param {Number} [options.minPixelRatio] - See {@link OpenSeadragon.Options}.
+ * @param {Number} [options.opacity=1] - Opacity the tiled image should be drawn at.
  * @param {Boolean} [options.debugMode] - See {@link OpenSeadragon.Options}.
+ * @param {String|CanvasGradient|CanvasPattern|Function} [options.placeholderFillStyle] - See {@link OpenSeadragon.Options}.
  * @param {String|Boolean} [options.crossOriginPolicy] - See {@link OpenSeadragon.Options}.
  */
 $.TiledImage = function( options ) {
@@ -15906,6 +17558,8 @@ $.TiledImage = function( options ) {
     $.console.assert( options.viewer, "[TiledImage] options.viewer is required" );
     $.console.assert( options.imageLoader, "[TiledImage] options.imageLoader is required" );
     $.console.assert( options.source, "[TiledImage] options.source is required" );
+    $.console.assert(!options.clip || options.clip instanceof $.Rect,
+        "[TiledImage] options.clip must be an OpenSeadragon.Rect if present");
 
     $.EventSource.call( this );
 
@@ -15917,6 +17571,12 @@ $.TiledImage = function( options ) {
 
     this._imageLoader = options.imageLoader;
     delete options.imageLoader;
+
+    if (options.clip instanceof $.Rect) {
+        this._clip = options.clip.clone();
+    }
+
+    delete options.clip;
 
     var x = options.x || 0;
     delete options.x;
@@ -15949,21 +17609,24 @@ $.TiledImage = function( options ) {
         coverage:       {},    // A '3d' dictionary [level][x][y] --> Boolean.
         lastDrawn:      [],    // An unordered list of Tiles drawn last frame.
         lastResetTime:  0,     // Last time for which the tiledImage was reset.
-        _midDraw:      false, // Is the tiledImage currently updating the viewport?
-        _needsDraw:    true,  // Does the tiledImage need to update the viewport again?
+        _midDraw:       false, // Is the tiledImage currently updating the viewport?
+        _needsDraw:     true,  // Does the tiledImage need to update the viewport again?
+        _hasOpaqueTile: false,  // Do we have even one fully opaque tile?
 
         //configurable settings
-        springStiffness:    $.DEFAULT_SETTINGS.springStiffness,
-        animationTime:      $.DEFAULT_SETTINGS.animationTime,
-        minZoomImageRatio:  $.DEFAULT_SETTINGS.minZoomImageRatio,
-        wrapHorizontal:     $.DEFAULT_SETTINGS.wrapHorizontal,
-        wrapVertical:       $.DEFAULT_SETTINGS.wrapVertical,
-        immediateRender:    $.DEFAULT_SETTINGS.immediateRender,
-        blendTime:          $.DEFAULT_SETTINGS.blendTime,
-        alwaysBlend:        $.DEFAULT_SETTINGS.alwaysBlend,
-        minPixelRatio:      $.DEFAULT_SETTINGS.minPixelRatio,
-        debugMode:          $.DEFAULT_SETTINGS.debugMode,
-        crossOriginPolicy:  $.DEFAULT_SETTINGS.crossOriginPolicy
+        springStiffness:      $.DEFAULT_SETTINGS.springStiffness,
+        animationTime:        $.DEFAULT_SETTINGS.animationTime,
+        minZoomImageRatio:    $.DEFAULT_SETTINGS.minZoomImageRatio,
+        wrapHorizontal:       $.DEFAULT_SETTINGS.wrapHorizontal,
+        wrapVertical:         $.DEFAULT_SETTINGS.wrapVertical,
+        immediateRender:      $.DEFAULT_SETTINGS.immediateRender,
+        blendTime:            $.DEFAULT_SETTINGS.blendTime,
+        alwaysBlend:          $.DEFAULT_SETTINGS.alwaysBlend,
+        minPixelRatio:        $.DEFAULT_SETTINGS.minPixelRatio,
+        debugMode:            $.DEFAULT_SETTINGS.debugMode,
+        crossOriginPolicy:    $.DEFAULT_SETTINGS.crossOriginPolicy,
+        placeholderFillStyle: $.DEFAULT_SETTINGS.placeholderFillStyle,
+        opacity:              $.DEFAULT_SETTINGS.opacity
 
     }, options );
 
@@ -16096,7 +17759,7 @@ $.extend($.TiledImage.prototype, $.EventSource.prototype, /** @lends OpenSeadrag
 
     // private
     _viewportToImageDelta: function( viewerX, viewerY, current ) {
-        var scale = current ? this._scaleSpring.current.value : this._scaleSpring.target.value;
+        var scale = (current ? this._scaleSpring.current.value : this._scaleSpring.target.value);
         return new $.Point(viewerX * (this.source.dimensions.x / scale),
             viewerY * ((this.source.dimensions.y * this.contentAspectX) / scale));
     },
@@ -16128,7 +17791,7 @@ $.extend($.TiledImage.prototype, $.EventSource.prototype, /** @lends OpenSeadrag
 
     // private
     _imageToViewportDelta: function( imageX, imageY, current ) {
-        var scale = current ? this._scaleSpring.current.value : this._scaleSpring.target.value;
+        var scale = (current ? this._scaleSpring.current.value : this._scaleSpring.target.value);
         return new $.Point((imageX / this.source.dimensions.x) * scale,
             (imageY / this.source.dimensions.y / this.contentAspectX) * scale);
     },
@@ -16226,6 +17889,83 @@ $.extend($.TiledImage.prototype, $.EventSource.prototype, /** @lends OpenSeadrag
     },
 
     /**
+     * Convert pixel coordinates relative to the viewer element to image
+     * coordinates.
+     * @param {OpenSeadragon.Point} pixel
+     * @returns {OpenSeadragon.Point}
+     */
+    viewerElementToImageCoordinates: function( pixel ) {
+        var point = this.viewport.pointFromPixel( pixel, true );
+        return this.viewportToImageCoordinates( point );
+    },
+
+    /**
+     * Convert pixel coordinates relative to the image to
+     * viewer element coordinates.
+     * @param {OpenSeadragon.Point} pixel
+     * @returns {OpenSeadragon.Point}
+     */
+    imageToViewerElementCoordinates: function( pixel ) {
+        var point = this.imageToViewportCoordinates( pixel );
+        return this.viewport.pixelFromPoint( point, true );
+    },
+
+    /**
+     * Convert pixel coordinates relative to the window to image coordinates.
+     * @param {OpenSeadragon.Point} pixel
+     * @returns {OpenSeadragon.Point}
+     */
+    windowToImageCoordinates: function( pixel ) {
+        var viewerCoordinates = pixel.minus(
+                OpenSeadragon.getElementPosition( this.viewer.element ));
+        return this.viewerElementToImageCoordinates( viewerCoordinates );
+    },
+
+    /**
+     * Convert image coordinates to pixel coordinates relative to the window.
+     * @param {OpenSeadragon.Point} pixel
+     * @returns {OpenSeadragon.Point}
+     */
+    imageToWindowCoordinates: function( pixel ) {
+        var viewerCoordinates = this.imageToViewerElementCoordinates( pixel );
+        return viewerCoordinates.plus(
+                OpenSeadragon.getElementPosition( this.viewer.element ));
+    },
+
+    /**
+     * Convert a viewport zoom to an image zoom.
+     * Image zoom: ratio of the original image size to displayed image size.
+     * 1 means original image size, 0.5 half size...
+     * Viewport zoom: ratio of the displayed image's width to viewport's width.
+     * 1 means identical width, 2 means image's width is twice the viewport's width...
+     * @function
+     * @param {Number} viewportZoom The viewport zoom
+     * @returns {Number} imageZoom The image zoom
+     */
+    viewportToImageZoom: function( viewportZoom ) {
+        var ratio = this._scaleSpring.current.value *
+                this.viewport._containerInnerSize.x / this.source.dimensions.x;
+        return ratio * viewportZoom ;
+    },
+
+    /**
+     * Convert an image zoom to a viewport zoom.
+     * Image zoom: ratio of the original image size to displayed image size.
+     * 1 means original image size, 0.5 half size...
+     * Viewport zoom: ratio of the displayed image's width to viewport's width.
+     * 1 means identical width, 2 means image's width is twice the viewport's width...
+     * Note: not accurate with multi-image.
+     * @function
+     * @param {Number} imageZoom The image zoom
+     * @returns {Number} viewportZoom The viewport zoom
+     */
+    imageToViewportZoom: function( imageZoom ) {
+        var ratio = this._scaleSpring.current.value *
+                this.viewport._containerInnerSize.x / this.source.dimensions.x;
+        return imageZoom / ratio;
+    },
+
+    /**
      * Sets the TiledImage's position in the world.
      * @param {OpenSeadragon.Point} position - The new position, in viewport coordinates.
      * @param {Boolean} [immediately=false] - Whether to animate to the new position or snap immediately.
@@ -16243,8 +17983,7 @@ $.extend($.TiledImage.prototype, $.EventSource.prototype, /** @lends OpenSeadrag
 
             this._xSpring.resetTo(position.x);
             this._ySpring.resetTo(position.y);
-            this._xSpring.update();
-            this._ySpring.update();
+            this._needsDraw = true;
         } else {
             if (sameTarget) {
                 return;
@@ -16252,6 +17991,7 @@ $.extend($.TiledImage.prototype, $.EventSource.prototype, /** @lends OpenSeadrag
 
             this._xSpring.springTo(position.x);
             this._ySpring.springTo(position.y);
+            this._needsDraw = true;
         }
 
         if (!sameTarget) {
@@ -16279,6 +18019,51 @@ $.extend($.TiledImage.prototype, $.EventSource.prototype, /** @lends OpenSeadrag
         this._setScale(height / this.normHeight, immediately);
     },
 
+    /**
+     * @returns {OpenSeadragon.Rect|null} The TiledImage's current clip rectangle,
+     * in image pixels, or null if none.
+     */
+    getClip: function() {
+        if (this._clip) {
+            return this._clip.clone();
+        }
+
+        return null;
+    },
+
+    /**
+     * @param {OpenSeadragon.Rect|null} newClip - An area, in image pixels, to clip to
+     * (portions of the image outside of this area will not be visible). Only works on
+     * browsers that support the HTML5 canvas.
+     */
+    setClip: function(newClip) {
+        $.console.assert(!newClip || newClip instanceof $.Rect,
+            "[TiledImage.setClip] newClip must be an OpenSeadragon.Rect or null");
+
+        if (newClip instanceof $.Rect) {
+            this._clip = newClip.clone();
+        } else {
+            this._clip = null;
+        }
+
+        this._needsDraw = true;
+    },
+
+    /**
+     * @returns {Number} The TiledImage's current opacity.
+     */
+    getOpacity: function() {
+        return this.opacity;
+    },
+
+    /**
+     * @param {Number} opacity Opacity the tiled image should be drawn at.
+     */
+    setOpacity: function(opacity) {
+        this.opacity = opacity;
+        this._needsDraw = true;
+    },
+
     // private
     _setScale: function(scale, immediately) {
         var sameTarget = (this._scaleSpring.target.value === scale);
@@ -16288,8 +18073,8 @@ $.extend($.TiledImage.prototype, $.EventSource.prototype, /** @lends OpenSeadrag
             }
 
             this._scaleSpring.resetTo(scale);
-            this._scaleSpring.update();
             this._updateForScale();
+            this._needsDraw = true;
         } else {
             if (sameTarget) {
                 return;
@@ -16297,6 +18082,7 @@ $.extend($.TiledImage.prototype, $.EventSource.prototype, /** @lends OpenSeadrag
 
             this._scaleSpring.springTo(scale);
             this._updateForScale();
+            this._needsDraw = true;
         }
 
         if (!sameTarget) {
@@ -16490,10 +18276,8 @@ function updateViewport( tiledImage ) {
     drawTiles( tiledImage, tiledImage.lastDrawn );
 
     // Load the new 'best' tile
-    if ( best ) {
+    if (best && !best.context2D) {
         loadTile( tiledImage, best, currentTime );
-        // because we haven't finished drawing, so
-        tiledImage._needsDraw = true;
     }
 
 }
@@ -16637,15 +18421,14 @@ function updateTile( tiledImage, drawLevel, haveDrawn, x, y, level, levelOpacity
     );
 
     if (!tile.loaded) {
-        var imageRecord = tiledImage._tileCache.getImageRecord(tile.url);
-        if (imageRecord) {
-            tile.loaded = true;
-            tile.image = imageRecord.getImage();
-
-            tiledImage._tileCache.cacheTile({
-                tile: tile,
-                tiledImage: tiledImage
-            });
+        if (tile.context2D) {
+            setTileLoaded(tiledImage, tile);
+        } else {
+            var imageRecord = tiledImage._tileCache.getImageRecord(tile.url);
+            if (imageRecord) {
+                var image = imageRecord.getImage();
+                setTileLoaded(tiledImage, tile, image);
+            }
         }
     }
 
@@ -16678,6 +18461,7 @@ function getTile( x, y, level, tileSource, tilesMatrix, time, numTiles, worldWid
         bounds,
         exists,
         url,
+        context2D,
         tile;
 
     if ( !tilesMatrix[ level ] ) {
@@ -16693,6 +18477,8 @@ function getTile( x, y, level, tileSource, tilesMatrix, time, numTiles, worldWid
         bounds  = tileSource.getTileBounds( level, xMod, yMod );
         exists  = tileSource.tileExists( level, xMod, yMod );
         url     = tileSource.getTileUrl( level, xMod, yMod );
+        context2D = tileSource.getContext2D ?
+            tileSource.getContext2D(level, xMod, yMod) : undefined;
 
         bounds.x += ( x - xMod ) / numTiles.x;
         bounds.y += (worldHeight / worldWidth) * (( y - yMod ) / numTiles.y);
@@ -16703,7 +18489,8 @@ function getTile( x, y, level, tileSource, tilesMatrix, time, numTiles, worldWid
             y,
             bounds,
             exists,
-            url
+            url,
+            context2D
         );
     }
 
@@ -16718,15 +18505,30 @@ function loadTile( tiledImage, tile, time ) {
     tiledImage._imageLoader.addJob({
         src: tile.url,
         crossOriginPolicy: tiledImage.crossOriginPolicy,
-        callback: function( image ){
-            onTileLoad( tiledImage, tile, time, image );
+        callback: function( image, errorMsg ){
+            onTileLoad( tiledImage, tile, time, image, errorMsg );
+        },
+        abort: function() {
+            tile.loading = false;
         }
     });
 }
 
-function onTileLoad( tiledImage, tile, time, image ) {
+function onTileLoad( tiledImage, tile, time, image, errorMsg ) {
     if ( !image ) {
-        $.console.log( "Tile %s failed to load: %s", tile, tile.url );
+        $.console.log( "Tile %s failed to load: %s - error: %s", tile, tile.url, errorMsg );
+        /**
+         * Triggered when a tile fails to load.
+         *
+         * @event tile-load-failed
+         * @memberof OpenSeadragon.Viewer
+         * @type {object}
+         * @property {OpenSeadragon.Tile} tile - The tile that failed to load.
+         * @property {OpenSeadragon.TiledImage} tiledImage - The tiled image the tile belongs to.
+         * @property {number} time - The time in milliseconds when the tile load began.
+         * @property {string} message - The error message.
+         */
+        tiledImage.viewer.raiseEvent("tile-load-failed", {tile: tile, tiledImage: tiledImage, time: time, message: errorMsg});
         if( !tiledImage.debugMode ){
             tile.loading = false;
             tile.exists = false;
@@ -16739,16 +18541,9 @@ function onTileLoad( tiledImage, tile, time, image ) {
     }
 
     var finish = function() {
-        tile.loading = false;
-        tile.loaded = true;
-        tile.image  = image;
-
-        var cutoff = Math.ceil( Math.log( tiledImage.source.getTileSize(tile.level) ) / Math.log( 2 ) );
-        tiledImage._tileCache.cacheTile({
-            tile: tile,
-            cutoff: cutoff,
-            tiledImage: tiledImage
-        });
+        var cutoff = Math.ceil( Math.log(
+            tiledImage.source.getTileWidth(tile.level) ) / Math.log( 2 ) );
+        setTileLoaded(tiledImage, tile, image, cutoff);
     };
 
     // Check if we're mid-update; this can happen on IE8 because image load events for
@@ -16759,10 +18554,57 @@ function onTileLoad( tiledImage, tile, time, image ) {
         // Wait until after the update, in case caching unloads any tiles
         window.setTimeout( finish, 1);
     }
-
-    tiledImage._needsDraw = true;
 }
 
+function setTileLoaded(tiledImage, tile, image, cutoff) {
+    var increment = 0;
+
+    function getCompletionCallback() {
+        increment++;
+        return completionCallback;
+    }
+
+    function completionCallback() {
+        increment--;
+        if (increment === 0) {
+            tile.loading = false;
+            tile.loaded = true;
+            if (!tile.context2D) {
+                tiledImage._tileCache.cacheTile({
+                    image: image,
+                    tile: tile,
+                    cutoff: cutoff,
+                    tiledImage: tiledImage
+                });
+            }
+            tiledImage._needsDraw = true;
+        }
+    }
+
+    /**
+     * Triggered when a tile has just been loaded in memory. That means that the
+     * image has been downloaded and can be modified before being drawn to the canvas.
+     *
+     * @event tile-loaded
+     * @memberof OpenSeadragon.Viewer
+     * @type {object}
+     * @property {Image} image - The image of the tile.
+     * @property {OpenSeadragon.TiledImage} tiledImage - The tiled image of the loaded tile.
+     * @property {OpenSeadragon.Tile} tile - The tile which has been loaded.
+     * @property {function} getCompletionCallback - A function giving a callback to call
+     * when the asynchronous processing of the image is done. The image will be
+     * marked as entirely loaded when the callback has been called once for each
+     * call to getCompletionCallback.
+     */
+    tiledImage.viewer.raiseEvent("tile-loaded", {
+        tile: tile,
+        tiledImage: tiledImage,
+        image: image,
+        getCompletionCallback: getCompletionCallback
+    });
+    // In case the completion callback is never called, we at least force it once.
+    getCompletionCallback()();
+}
 
 function positionTile( tile, overlap, viewport, viewportCenter, levelVisibility, tiledImage ){
     var boundsTL     = tile.bounds.getTopLeft();
@@ -16817,6 +18659,7 @@ function blendTile( tiledImage, tile, x, y, level, levelOpacity, currentTime ){
 
     if ( opacity == 1 ) {
         setCoverage( tiledImage.coverage, level, x, y, true );
+        tiledImage._hasOpaqueTile = true;
     } else if ( deltaTime < blendTimeMillis ) {
         return true;
     }
@@ -16941,27 +18784,48 @@ function compareTiles( previousBest, tile ) {
     return previousBest;
 }
 
-function drawTiles( tiledImage, lastDrawn ){
+function drawTiles( tiledImage, lastDrawn ) {
     var i,
-        tile,
-        tileKey,
-        viewer,
-        viewport,
-        position,
-        tileSource;
+        tile;
+
+    if ( tiledImage.opacity <= 0 ) {
+        drawDebugInfo( tiledImage, lastDrawn );
+        return;
+    }
+    var useSketch = tiledImage.opacity < 1;
+    if ( useSketch ) {
+        tiledImage._drawer._clear( true );
+    }
+
+    var usedClip = false;
+    if ( tiledImage._clip ) {
+        tiledImage._drawer.saveContext(useSketch);
+
+        var box = tiledImage.imageToViewportRectangle(tiledImage._clip, true);
+        var clipRect = tiledImage._drawer.viewportToDrawerRectangle(box);
+        tiledImage._drawer.setClip(clipRect, useSketch);
+
+        usedClip = true;
+    }
+
+    if ( tiledImage.placeholderFillStyle && tiledImage._hasOpaqueTile === false ) {
+        var placeholderRect = tiledImage._drawer.viewportToDrawerRectangle(tiledImage.getBounds(true));
+
+        var fillStyle = null;
+        if ( typeof tiledImage.placeholderFillStyle === "function" ) {
+            fillStyle = tiledImage.placeholderFillStyle(tiledImage, tiledImage._drawer.context);
+        }
+        else {
+            fillStyle = tiledImage.placeholderFillStyle;
+        }
+
+        tiledImage._drawer.drawRectangle(placeholderRect, fillStyle, useSketch);
+    }
 
     for ( i = lastDrawn.length - 1; i >= 0; i-- ) {
         tile = lastDrawn[ i ];
-        tiledImage._drawer.drawTile( tile, tiledImage._drawingHandler );
+        tiledImage._drawer.drawTile( tile, tiledImage._drawingHandler, useSketch );
         tile.beingDrawn = true;
-
-        if( tiledImage.debugMode ){
-            try{
-                tiledImage._drawer.drawDebugInfo( tile, lastDrawn.length, i );
-            }catch(e){
-                $.console.error(e);
-            }
-        }
 
         if( tiledImage.viewer ){
             /**
@@ -16979,6 +18843,28 @@ function drawTiles( tiledImage, lastDrawn ){
                 tiledImage: tiledImage,
                 tile: tile
             });
+        }
+    }
+
+    if ( usedClip ) {
+        tiledImage._drawer.restoreContext( useSketch );
+    }
+
+    if ( useSketch ) {
+        tiledImage._drawer.blendSketch( tiledImage.opacity );
+    }
+    drawDebugInfo( tiledImage, lastDrawn );
+}
+
+function drawDebugInfo( tiledImage, lastDrawn ) {
+    if( tiledImage.debugMode ) {
+        for ( var i = lastDrawn.length - 1; i >= 0; i-- ) {
+            var tile = lastDrawn[ i ];
+            try {
+                tiledImage._drawer.drawDebugInfo( tile, lastDrawn.length, i );
+            } catch(e) {
+                $.console.error(e);
+            }
         }
     }
 }
@@ -17050,10 +18936,23 @@ ImageRecord.prototype = {
     },
 
     getRenderedContext: function() {
+        if (!this._renderedContext) {
+            var canvas = document.createElement( 'canvas' );
+            canvas.width = this._image.width;
+            canvas.height = this._image.height;
+            this._renderedContext = canvas.getContext('2d');
+            this._renderedContext.drawImage( this._image, 0, 0 );
+            //since we are caching the prerendered image on a canvas
+            //allow the image to not be held in memory
+            this._image = null;
+        }
         return this._renderedContext;
     },
 
     setRenderedContext: function(renderedContext) {
+        $.console.error("ImageRecord.setRenderedContext is deprecated. " +
+                "The rendered context should be created by the ImageRecord " +
+                "itself when calling ImageRecord.getRenderedContext.");
         this._renderedContext = renderedContext;
     },
 
@@ -17113,6 +19012,7 @@ $.TileCache.prototype = /** @lends OpenSeadragon.TileCache.prototype */{
      * may temporarily surpass that number, but should eventually come back down to the max specified.
      * @param {Object} options - Tile info.
      * @param {OpenSeadragon.Tile} options.tile - The tile to cache.
+     * @param {Image} options.image - The image of the tile to cache.
      * @param {OpenSeadragon.TiledImage} options.tiledImage - The TiledImage that owns that tile.
      * @param {Number} [options.cutoff=0] - If adding this tile goes over the cache max count, this
      * function will release an old tile. The cutoff option specifies a tile level at or below which
@@ -17122,7 +19022,6 @@ $.TileCache.prototype = /** @lends OpenSeadragon.TileCache.prototype */{
         $.console.assert( options, "[TileCache.cacheTile] options is required" );
         $.console.assert( options.tile, "[TileCache.cacheTile] options.tile is required" );
         $.console.assert( options.tile.url, "[TileCache.cacheTile] options.tile.url is required" );
-        $.console.assert( options.tile.image, "[TileCache.cacheTile] options.tile.image is required" );
         $.console.assert( options.tiledImage, "[TileCache.cacheTile] options.tiledImage is required" );
 
         var cutoff = options.cutoff || 0;
@@ -17130,8 +19029,9 @@ $.TileCache.prototype = /** @lends OpenSeadragon.TileCache.prototype */{
 
         var imageRecord = this._imagesLoaded[options.tile.url];
         if (!imageRecord) {
+            $.console.assert( options.image, "[TileCache.cacheTile] options.image is required to create an ImageRecord" );
             imageRecord = this._imagesLoaded[options.tile.url] = new ImageRecord({
-                image: options.tile.image
+                image: options.image
             });
 
             this._imagesLoadedCount++;
@@ -17145,6 +19045,7 @@ $.TileCache.prototype = /** @lends OpenSeadragon.TileCache.prototype */{
         if ( this._imagesLoadedCount > this._maxImageCacheCount ) {
             var worstTile       = null;
             var worstTileIndex  = -1;
+            var worstTileRecord = null;
             var prevTile, worstTime, worstLevel, prevTime, prevLevel, prevTileRecord;
 
             for ( var i = this._tilesLoaded.length - 1; i >= 0; i-- ) {
@@ -17156,6 +19057,7 @@ $.TileCache.prototype = /** @lends OpenSeadragon.TileCache.prototype */{
                 } else if ( !worstTile ) {
                     worstTile       = prevTile;
                     worstTileIndex  = i;
+                    worstTileRecord = prevTileRecord;
                     continue;
                 }
 
@@ -17168,11 +19070,12 @@ $.TileCache.prototype = /** @lends OpenSeadragon.TileCache.prototype */{
                    ( prevTime == worstTime && prevLevel > worstLevel ) ) {
                     worstTile       = prevTile;
                     worstTileIndex  = i;
+                    worstTileRecord = prevTileRecord;
                 }
             }
 
             if ( worstTile && worstTileIndex >= 0 ) {
-                this._unloadTile(worstTile);
+                this._unloadTile(worstTileRecord);
                 insertionIndex = worstTileIndex;
             }
         }
@@ -17193,7 +19096,7 @@ $.TileCache.prototype = /** @lends OpenSeadragon.TileCache.prototype */{
         for ( var i = 0; i < this._tilesLoaded.length; ++i ) {
             tileRecord = this._tilesLoaded[ i ];
             if ( tileRecord.tiledImage === tiledImage ) {
-                this._unloadTile(tileRecord.tile);
+                this._unloadTile(tileRecord);
                 this._tilesLoaded.splice( i, 1 );
                 i--;
             }
@@ -17207,8 +19110,11 @@ $.TileCache.prototype = /** @lends OpenSeadragon.TileCache.prototype */{
     },
 
     // private
-    _unloadTile: function(tile) {
-        $.console.assert(tile, '[TileCache._unloadTile] tile is required');
+    _unloadTile: function(tileRecord) {
+        $.console.assert(tileRecord, '[TileCache._unloadTile] tileRecord is required');
+        var tile = tileRecord.tile;
+        var tiledImage = tileRecord.tiledImage;
+
         tile.unload();
         tile.cacheImageRecord = null;
 
@@ -17219,6 +19125,20 @@ $.TileCache.prototype = /** @lends OpenSeadragon.TileCache.prototype */{
             delete this._imagesLoaded[tile.url];
             this._imagesLoadedCount--;
         }
+
+        /**
+         * Triggered when a tile has just been unloaded from memory.
+         *
+         * @event tile-unloaded
+         * @memberof OpenSeadragon.Viewer
+         * @type {object}
+         * @property {OpenSeadragon.TiledImage} tiledImage - The tiled image of the unloaded tile.
+         * @property {OpenSeadragon.Tile} tile - The tile which has been unloaded.
+         */
+        tiledImage.viewer.raiseEvent("tile-unloaded", {
+            tile: tile,
+            tiledImage: tiledImage
+        });
     }
 };
 
@@ -17278,8 +19198,14 @@ $.World = function( options ) {
     this.viewer = options.viewer;
     this._items = [];
     this._needsDraw = false;
+    this._autoRefigureSizes = true;
+    this._needsSizesFigured = false;
     this._delegatedFigureSizes = function(event) {
-        _this._figureSizes();
+        if (_this._autoRefigureSizes) {
+            _this._figureSizes();
+        } else {
+            _this._needsSizesFigured = true;
+        }
     };
 
     this._figureSizes();
@@ -17305,7 +19231,12 @@ $.extend( $.World.prototype, $.EventSource.prototype, /** @lends OpenSeadragon.W
             this._items.push( item );
         }
 
-        this._figureSizes();
+        if (this._autoRefigureSizes) {
+            this._figureSizes();
+        } else {
+            this._needsSizesFigured = true;
+        }
+
         this._needsDraw = true;
 
         item.addHandler('bounds-change', this._delegatedFigureSizes);
@@ -17330,7 +19261,7 @@ $.extend( $.World.prototype, $.EventSource.prototype, /** @lends OpenSeadragon.W
      * @returns {OpenSeadragon.TiledImage} The item at the specified index.
      */
     getItemAt: function( index ) {
-        $.console.assert(index !== 'undefined', "[World.getItemAt] index is required");
+        $.console.assert(index !== undefined, "[World.getItemAt] index is required");
         return this._items[ index ];
     },
 
@@ -17359,7 +19290,7 @@ $.extend( $.World.prototype, $.EventSource.prototype, /** @lends OpenSeadragon.W
      */
     setItemIndex: function( item, index ) {
         $.console.assert(item, "[World.setItemIndex] item is required");
-        $.console.assert(index !== 'undefined', "[World.setItemIndex] index is required");
+        $.console.assert(index !== undefined, "[World.setItemIndex] index is required");
 
         var oldIndex = this.getIndexOfItem( item );
 
@@ -17403,12 +19334,13 @@ $.extend( $.World.prototype, $.EventSource.prototype, /** @lends OpenSeadragon.W
     removeItem: function( item ) {
         $.console.assert(item, "[World.removeItem] item is required");
 
-        var index = this._items.indexOf( item );
+        var index = $.indexOf(this._items, item );
         if ( index === -1 ) {
             return;
         }
 
         item.removeHandler('bounds-change', this._delegatedFigureSizes);
+        item.destroy();
         this._items.splice( index, 1 );
         this._figureSizes();
         this._needsDraw = true;
@@ -17421,10 +19353,13 @@ $.extend( $.World.prototype, $.EventSource.prototype, /** @lends OpenSeadragon.W
      * @fires OpenSeadragon.World.event:metrics-change
      */
     removeAll: function() {
+        // We need to make sure any pending images are canceled so the world items don't get messed up
+        this.viewer._cancelPendingImages();
         var item;
         for (var i = 0; i < this._items.length; i++) {
             item = this._items[i];
             item.removeHandler('bounds-change', this._delegatedFigureSizes);
+            item.destroy();
         }
 
         var removedItems = this._items;
@@ -17500,11 +19435,27 @@ $.extend( $.World.prototype, $.EventSource.prototype, /** @lends OpenSeadragon.W
     },
 
     /**
+     * As a performance optimization, setting this flag to false allows the bounds-change event handler
+     * on tiledImages to skip calculations on the world bounds. If a lot of images are going to be positioned in
+     * rapid succession, this is a good idea. When finished, setAutoRefigureSizes should be called with true
+     * or the system may behave oddly.
+     * @param {Boolean} [value] The value to which to set the flag.
+     */
+    setAutoRefigureSizes: function(value) {
+        this._autoRefigureSizes = value;
+        if (value & this._needsSizesFigured) {
+            this._figureSizes();
+            this._needsSizesFigured = false;
+        }
+    },
+
+    /**
      * Arranges all of the TiledImages with the specified settings.
      * @param {Object} options - Specifies how to arrange.
      * @param {Boolean} [options.immediately=false] - Whether to animate to the new arrangement.
      * @param {String} [options.layout] - See collectionLayout in {@link OpenSeadragon.Options}.
      * @param {Number} [options.rows] - See collectionRows in {@link OpenSeadragon.Options}.
+     * @param {Number} [options.columns] - See collectionColumns in {@link OpenSeadragon.Options}.
      * @param {Number} [options.tileSize] - See collectionTileSize in {@link OpenSeadragon.Options}.
      * @param {Number} [options.tileMargin] - See collectionTileMargin in {@link OpenSeadragon.Options}.
      * @fires OpenSeadragon.World.event:metrics-change
@@ -17514,13 +19465,21 @@ $.extend( $.World.prototype, $.EventSource.prototype, /** @lends OpenSeadragon.W
         var immediately = options.immediately || false;
         var layout = options.layout || $.DEFAULT_SETTINGS.collectionLayout;
         var rows = options.rows || $.DEFAULT_SETTINGS.collectionRows;
+        var columns = options.columns || $.DEFAULT_SETTINGS.collectionColumns;
         var tileSize = options.tileSize || $.DEFAULT_SETTINGS.collectionTileSize;
         var tileMargin = options.tileMargin || $.DEFAULT_SETTINGS.collectionTileMargin;
         var increment = tileSize + tileMargin;
-        var wrap = Math.ceil(this._items.length / rows);
+        var wrap;
+        if (!options.rows && columns) {
+            wrap = columns;
+        } else {
+            wrap = Math.ceil(this._items.length / rows);
+        }
         var x = 0;
         var y = 0;
         var item, box, width, height, position;
+
+        this.setAutoRefigureSizes(false);
         for (var i = 0; i < this._items.length; i++) {
             if (i && (i % wrap) === 0) {
                 if (layout === 'horizontal') {
@@ -17553,6 +19512,7 @@ $.extend( $.World.prototype, $.EventSource.prototype, /** @lends OpenSeadragon.W
                 y += increment;
             }
         }
+        this.setAutoRefigureSizes(true);
     },
 
     // private
