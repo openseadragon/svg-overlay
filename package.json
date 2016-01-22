@@ -1,0 +1,30 @@
+{
+  "name": "svg-overlay",
+  "version": "1.0.0",
+  "description": "An OpenSeadragon plugin that adds SVG overlay capability.",
+  "main": "openseadragon-svg-overlay.js",
+  "dependencies": {
+    "openseadragon": "^2.0.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/openseadragon/svg-overlay.git"
+  },
+  "files": [ ],
+  "keywords": [
+    "openseadragon",
+    "plugin",
+    "svg",
+    "overlay"
+  ],
+  "author": "Ian Gilman",
+  "license": "BSD-3-Clause",
+  "bugs": {
+    "url": "https://github.com/openseadragon/svg-overlay/issues"
+  },
+  "homepage": "https://github.com/openseadragon/svg-overlay#readme"
+}
