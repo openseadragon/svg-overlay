@@ -50,6 +50,10 @@
             self.resize();
         });
 
+        this._viewer.addHandler('resize', function() {
+            self.resize();
+        });
+
         this.resize();
     };
 
