@@ -5,7 +5,7 @@
     $ = window.OpenSeadragon;
     
     if (!$) {
-    $ = require('openseadragon');
+        $ = require('openseadragon');
         if (!$) {
             throw new Error('OpenSeadragon is missing.');
         }
