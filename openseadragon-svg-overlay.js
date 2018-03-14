@@ -2,15 +2,19 @@
 
 (function() {
 
-    if (!window.OpenSeadragon) {
-        console.error('[openseadragon-svg-overlay] requires OpenSeadragon');
-        return;
+    $ = window.OpenSeadragon;
+    
+    if (!$) {
+        $ = require('openseadragon');
+        if (!$) {
+            throw new Error('OpenSeadragon is missing.');
+        }
     }
 
     var svgNS = 'http://www.w3.org/2000/svg';
 
     // ----------
-    OpenSeadragon.Viewer.prototype.svgOverlay = function() {
+    $.Viewer.prototype.svgOverlay = function() {
         if (this._svgOverlayInfo) {
             return this._svgOverlayInfo;
         }
@@ -76,7 +80,7 @@
                 this._svg.setAttribute('height', this._containerHeight);
             }
 
-            var p = this._viewer.viewport.pixelFromPoint(new OpenSeadragon.Point(0, 0), true);
+            var p = this._viewer.viewport.pixelFromPoint(new $.Point(0, 0), true);
             var zoom = this._viewer.viewport.getZoom(true);
             var rotation = this._viewer.viewport.getRotation();
             // TODO: Expose an accessor for _containerInnerSize in the OSD API so we don't have to use the private variable.
@@ -89,7 +93,7 @@
         onClick: function(node, handler) {
             // TODO: Fast click for mobile browsers
 
-            new OpenSeadragon.MouseTracker({
+            new $.MouseTracker({
                 element: node,
                 clickHandler: handler
             }).setTracking(true);
