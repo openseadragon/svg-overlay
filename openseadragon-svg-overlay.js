@@ -2,7 +2,7 @@
 
 (function() {
 
-    $ = window.OpenSeadragon;
+    var $ = window.OpenSeadragon;
     
     if (!$) {
         $ = require('openseadragon');
