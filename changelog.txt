@@ -1,6 +1,10 @@
 OPENSEADRAGON SVG OVERLAY CHANGELOG
 ===================================
 
+0.0.5:
+
+* Supporting import/require-style loading of OpenSeadragon (#10)
+
 0.0.4:
 
 * Fixed: overlay off when OSD viewport margins set (#9)
