@@ -3,7 +3,7 @@ OPENSEADRAGON SVG OVERLAY CHANGELOG
 
 0.0.5:
 
-* Supporting import/require-style loading of OpenSeadragon (#10)
+* Supporting import/require-style loading of OpenSeadragon (#23)
 
 0.0.4:
 
