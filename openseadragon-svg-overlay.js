@@ -1,4 +1,4 @@
-// OpenSeadragon SVG Overlay plugin 0.0.4
+// OpenSeadragon SVG Overlay plugin 0.0.5
 
 (function() {
 
