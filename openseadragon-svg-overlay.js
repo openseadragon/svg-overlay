@@ -54,6 +54,10 @@
             self.resize();
         });
 
+        this._viewer.addHandler('flip', function() {
+          self.resize();
+        });
+
         this._viewer.addHandler('resize', function() {
             self.resize();
         });
@@ -83,10 +87,21 @@
             var p = this._viewer.viewport.pixelFromPoint(new $.Point(0, 0), true);
             var zoom = this._viewer.viewport.getZoom(true);
             var rotation = this._viewer.viewport.getRotation();
+            var flipped = this._viewer.viewport.getFlip();
             // TODO: Expose an accessor for _containerInnerSize in the OSD API so we don't have to use the private variable.
             var scale = this._viewer.viewport._containerInnerSize.x * zoom;
-            this._node.setAttribute('transform',
-                'translate(' + p.x + ',' + p.y + ') scale(' + scale + ') rotate(' + rotation + ')');
+            
+            if(flipped){
+                // Translates svg back into the correct coordinates when the x scale is made negative.
+                p.x = -p.x + this._viewer.viewport._containerInnerSize.x;
+                // Makes the x component of the scale negative to flip the svg
+                this._node.setAttribute('transform',
+                    'translate(' + p.x + ',' + p.y + ') scale(' + -scale + ',' + scale + ') rotate(' + rotation + ')');
+            } else {
+                this._node.setAttribute('transform',
+                    'translate(' + p.x + ',' + p.y + ') scale(' + scale + ') rotate(' + rotation + ')');
+            }
+
         },
 
         // ----------
