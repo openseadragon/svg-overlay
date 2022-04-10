@@ -89,21 +89,19 @@
             var rotation = this._viewer.viewport.getRotation();
             var flipped = this._viewer.viewport.getFlip();
             // TODO: Expose an accessor for _containerInnerSize in the OSD API so we don't have to use the private variable.
-            var scale = this._viewer.viewport._containerInnerSize.x * zoom;
+            var scaleX = this._viewer.viewport._containerInnerSize.x * zoom;
+            var scaleY = this._viewer.viewport._containerInnerSize.x * zoom;
             
             if(flipped){
+                // Makes the x component of the scale negative to flip the svg
+                scaleX = -scaleX;
                 // Translates svg back into the correct coordinates when the x scale is made negative.
                 p.x = -p.x + this._viewer.viewport._containerInnerSize.x;
-                // Makes the x component of the scale negative to flip the svg
-                this._node.setAttribute('transform',
-                    'translate(' + p.x + ',' + p.y + ') scale(' + -scale + ',' + scale + ') rotate(' + rotation + ')');
-            } else {
-                this._node.setAttribute('transform',
-                    'translate(' + p.x + ',' + p.y + ') scale(' + scale + ') rotate(' + rotation + ')');
             }
 
+            this._node.setAttribute('transform',
+                'translate(' + p.x + ',' + p.y + ') scale(' + scaleX + ',' + scaleY + ') rotate(' + rotation + ')');
         },
-
         // ----------
         onClick: function(node, handler) {
             // TODO: Fast click for mobile browsers
