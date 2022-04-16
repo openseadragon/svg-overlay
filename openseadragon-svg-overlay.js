@@ -89,14 +89,15 @@
             var rotation = this._viewer.viewport.getRotation();
             var flipped = this._viewer.viewport.getFlip();
             // TODO: Expose an accessor for _containerInnerSize in the OSD API so we don't have to use the private variable.
-            var scaleX = this._viewer.viewport._containerInnerSize.x * zoom;
-            var scaleY = this._viewer.viewport._containerInnerSize.x * zoom;
+            var containerSizeX = this._viewer.viewport._containerInnerSize.x
+            var scaleX = containerSizeX * zoom;
+            var scaleY = scaleX;
             
             if(flipped){
                 // Makes the x component of the scale negative to flip the svg
                 scaleX = -scaleX;
                 // Translates svg back into the correct coordinates when the x scale is made negative.
-                p.x = -p.x + this._viewer.viewport._containerInnerSize.x;
+                p.x = -p.x + containerSizeX;
             }
 
             this._node.setAttribute('transform',
