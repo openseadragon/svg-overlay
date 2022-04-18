@@ -1,6 +1,6 @@
 {
   "name": "svg-overlay",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "An OpenSeadragon plugin that adds SVG overlay capability.",
   "main": "openseadragon-svg-overlay.js",
   "dependencies": {

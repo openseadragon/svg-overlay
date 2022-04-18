@@ -1,6 +1,10 @@
 OPENSEADRAGON SVG OVERLAY CHANGELOG
 ===================================
 
+0.0.6: 
+
+* Now flipping the SVG when the OSD viewer flips (#46 @CodingMoore)
+
 0.0.5:
 
 * Supporting import/require-style loading of OpenSeadragon (#23)
