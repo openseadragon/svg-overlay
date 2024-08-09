@@ -16,7 +16,6 @@ To add SVG overlay capability to your OpenSeadragon Viewer, call `svgOverlay()` 
 
 See demo.html for an example of it in use. You can see it in action at http://openseadragon.github.io/svg-overlay/demo.html.
 
-This plugin is also used on the desktop versions of:
+This plugin is also used on the desktop version of:
 
-* http://iangilman.com/openseadragon/rdio/
 * http://iangilman.com/openseadragon/flickr/
